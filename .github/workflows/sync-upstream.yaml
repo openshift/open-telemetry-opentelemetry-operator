@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOPATH: ${{ github.workspace }}
-      UPSTREAM: https://github.com/pavolloffay/test-fork-sync.git
+      UPSTREAM: https://github.com/open-telemetry/opentelemetry-operator.git
     steps:
       - name: Checkout
         uses: actions/checkout@v3
