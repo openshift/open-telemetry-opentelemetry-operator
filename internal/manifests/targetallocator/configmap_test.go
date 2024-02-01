@@ -39,7 +39,7 @@ func TestDesiredConfigMap(t *testing.T) {
 		expectedLables["app.kubernetes.io/name"] = "my-instance-targetallocator"
 
 		expectedData := map[string]string{
-			"targetallocator.yaml": `allocation_strategy: least-weighted
+			"targetallocator.yaml": `allocation_strategy: consistent-hashing
 collector_selector:
   matchlabels:
     app.kubernetes.io/component: opentelemetry-collector
@@ -54,11 +54,19 @@ config:
     - targets:
       - 0.0.0.0:8888
       - 0.0.0.0:9999
+filter_strategy: relabel-config
 label_selector:
   app.kubernetes.io/component: opentelemetry-collector
   app.kubernetes.io/instance: default.my-instance
   app.kubernetes.io/managed-by: opentelemetry-operator
   app.kubernetes.io/part-of: opentelemetry
+prometheus_cr:
+  pod_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
+  service_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
 `,
 		}
 		instance := collectorInstance()
@@ -81,7 +89,7 @@ label_selector:
 		expectedLables["app.kubernetes.io/name"] = "my-instance-targetallocator"
 
 		expectedData := map[string]string{
-			"targetallocator.yaml": `allocation_strategy: least-weighted
+			"targetallocator.yaml": `allocation_strategy: consistent-hashing
 collector_selector:
   matchlabels:
     app.kubernetes.io/component: opentelemetry-collector
@@ -96,6 +104,7 @@ config:
     - targets:
       - 0.0.0.0:8888
       - 0.0.0.0:9999
+filter_strategy: relabel-config
 label_selector:
   app.kubernetes.io/component: opentelemetry-collector
   app.kubernetes.io/instance: default.my-instance
@@ -103,6 +112,15 @@ label_selector:
   app.kubernetes.io/part-of: opentelemetry
 pod_monitor_selector:
   release: my-instance
+prometheus_cr:
+  pod_monitor_selector:
+    matchlabels:
+      release: my-instance
+    matchexpressions: []
+  service_monitor_selector:
+    matchlabels:
+      release: my-instance
+    matchexpressions: []
 service_monitor_selector:
   release: my-instance
 `,
@@ -133,7 +151,7 @@ service_monitor_selector:
 		expectedLables["app.kubernetes.io/name"] = "my-instance-targetallocator"
 
 		expectedData := map[string]string{
-			"targetallocator.yaml": `allocation_strategy: least-weighted
+			"targetallocator.yaml": `allocation_strategy: consistent-hashing
 collector_selector:
   matchlabels:
     app.kubernetes.io/component: opentelemetry-collector
@@ -148,13 +166,20 @@ config:
     - targets:
       - 0.0.0.0:8888
       - 0.0.0.0:9999
+filter_strategy: relabel-config
 label_selector:
   app.kubernetes.io/component: opentelemetry-collector
   app.kubernetes.io/instance: default.my-instance
   app.kubernetes.io/managed-by: opentelemetry-operator
   app.kubernetes.io/part-of: opentelemetry
 prometheus_cr:
+  pod_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
   scrape_interval: 30s
+  service_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
 `,
 		}
 

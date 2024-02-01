@@ -563,6 +563,7 @@ func TestOTELColValidatingWebhook(t *testing.T) {
 				"missing the following rules for nodes/metrics: [get,list,watch]",
 				"missing the following rules for services: [get,list,watch]",
 				"missing the following rules for endpoints: [get,list,watch]",
+				"missing the following rules for namespaces: [get,list,watch]",
 				"missing the following rules for networking.k8s.io/ingresses: [get,list,watch]",
 				"missing the following rules for nodes: [get,list,watch]",
 				"missing the following rules for pods: [get,list,watch]",
@@ -1040,6 +1041,22 @@ func TestOTELColValidatingWebhook(t *testing.T) {
 				},
 			},
 			expectedErr: "the OpenTelemetry Collector mode is set to deployment, which does not support the attribute 'updateStrategy'",
+		},
+		{
+			name: "invalid updateStrategy for Statefulset mode",
+			otelcol: OpenTelemetryCollector{
+				Spec: OpenTelemetryCollectorSpec{
+					Mode: ModeStatefulSet,
+					DeploymentUpdateStrategy: appsv1.DeploymentStrategy{
+						Type: "RollingUpdate",
+						RollingUpdate: &appsv1.RollingUpdateDeployment{
+							MaxSurge:       &intstr.IntOrString{Type: intstr.Int, IntVal: int32(1)},
+							MaxUnavailable: &intstr.IntOrString{Type: intstr.Int, IntVal: int32(1)},
+						},
+					},
+				},
+			},
+			expectedErr: "the OpenTelemetry Collector mode is set to statefulset, which does not support the attribute 'deploymentUpdateStrategy'",
 		},
 	}
 

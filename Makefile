@@ -1,7 +1,7 @@
 # Current Operator version
 VERSION ?= $(shell git describe --tags | sed 's/^v//')
 VERSION_DATE ?= $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
-VERSION_PKG ?= "github.com/open-telemetry/opentelemetry-operator/internal/version"
+VERSION_PKG ?= github.com/open-telemetry/opentelemetry-operator/internal/version
 OTELCOL_VERSION ?= "$(shell grep -v '\#' versions.txt | grep opentelemetry-collector | awk -F= '{print $$2}')"
 OPERATOR_VERSION ?= "$(shell grep -v '\#' versions.txt | grep operator= | awk -F= '{print $$2}')"
 TARGETALLOCATOR_VERSION ?= $(shell grep -v '\#' versions.txt | grep targetallocator | awk -F= '{print $$2}')
@@ -97,18 +97,11 @@ all: manager
 .PHONY: ci
 ci: test
 
-# helper to get your gomod up-to-date
-.PHONY: gomod
-gomod:
-	go mod tidy && go mod vendor && (cd cmd/otel-allocator && go mod tidy) && (cd cmd/operator-opamp-bridge && go mod tidy)
-
 # Run tests
 # setup-envtest uses KUBEBUILDER_ASSETS which points to a directory with binaries (api-server, etcd and kubectl)
 .PHONY: test
 test: generate fmt vet ensure-generate-is-noop envtest
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(KUBE_VERSION) -p path)" go test ${GOTEST_OPTS} ./...
-	cd cmd/otel-allocator && KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(KUBE_VERSION) -p path)" go test ${GOTEST_OPTS} ./...
-	cd cmd/operator-opamp-bridge && KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(KUBE_VERSION) -p path)" go test ${GOTEST_OPTS} ./...
 
 # Build manager binary
 .PHONY: manager
@@ -117,16 +110,16 @@ manager: generate fmt vet
 
 # Build target allocator binary
 targetallocator:
-	cd cmd/otel-allocator && CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(ARCH) go build -a -installsuffix cgo -o bin/targetallocator_${ARCH} -ldflags "${COMMON_LDFLAGS}" .
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(ARCH) go build -a -installsuffix cgo -o cmd/otel-allocator/bin/targetallocator_${ARCH} -ldflags "${COMMON_LDFLAGS}" ./cmd/otel-allocator
 
 # Build opamp bridge binary
 operator-opamp-bridge:
-	cd cmd/operator-opamp-bridge && CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(ARCH) go build -a -installsuffix cgo -o bin/opampbridge_${ARCH} -ldflags "${COMMON_LDFLAGS}" .
+	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(ARCH) go build -a -installsuffix cgo -o cmd/operator-opamp-bridge/bin/opampbridge_${ARCH} -ldflags "${COMMON_LDFLAGS}" ./cmd/operator-opamp-bridge
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
 run: generate fmt vet manifests
-	ENABLE_WEBHOOKS=$(ENABLE_WEBHOOKS) go run -ldflags ${OPERATOR_LDFLAGS} ./main.go --zap-devel
+	ENABLE_WEBHOOKS=$(ENABLE_WEBHOOKS) go run -ldflags "${OPERATOR_LDFLAGS}" ./main.go --zap-devel
 
 # Install CRDs into a cluster
 .PHONY: install
@@ -196,8 +189,6 @@ vet:
 .PHONY: lint
 lint: golangci-lint
 	$(GOLANGCI_LINT) run
-	cd cmd/otel-allocator && $(GOLANGCI_LINT) run
-	cd cmd/operator-opamp-bridge && $(GOLANGCI_LINT) run
 
 # Generate code
 .PHONY: generate
@@ -282,6 +273,10 @@ container-push:
 container-target-allocator-push:
 	docker push ${TARGETALLOCATOR_IMG}
 
+.PHONY: container-operator-opamp-bridge-push
+container-operator-opamp-bridge-push:
+	docker push ${OPERATOROPAMPBRIDGE_IMG}
+
 .PHONY: container-target-allocator
 container-target-allocator: GOOS = linux
 container-target-allocator: targetallocator
@@ -333,7 +328,7 @@ endif
 
 
 .PHONY: load-image-operator-opamp-bridge
-load-image-operator-opamp-bridge:
+load-image-operator-opamp-bridge: container-operator-opamp-bridge
 	kind load --name $(KIND_CLUSTER_NAME) docker-image ${OPERATOROPAMPBRIDGE_IMG}
 
 .PHONY: cert-manager
@@ -456,11 +451,12 @@ operator-sdk:
 
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
-bundle: kustomize operator-sdk manifests set-image-controller
+bundle: kustomize operator-sdk manifests set-image-controller api-docs
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	$(OPERATOR_SDK) bundle validate ./bundle
 	./hack/ignore-createdAt-bundle.sh
+	./hack/add-openshift-annotations.sh
+	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: reset
 reset: kustomize operator-sdk manifests

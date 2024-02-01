@@ -44,6 +44,7 @@ func Deployment(params manifests.Params) *appsv1.Deployment {
 			Selector: &metav1.LabelSelector{
 				MatchLabels: manifestutils.SelectorLabels(params.OtelCol.ObjectMeta, ComponentOpenTelemetryCollector),
 			},
+			Strategy: params.OtelCol.Spec.DeploymentUpdateStrategy,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels:      labels,
@@ -56,6 +57,7 @@ func Deployment(params manifests.Params) *appsv1.Deployment {
 					Volumes:                       Volumes(params.Config, params.OtelCol),
 					DNSPolicy:                     getDNSPolicy(params.OtelCol),
 					HostNetwork:                   params.OtelCol.Spec.HostNetwork,
+					ShareProcessNamespace:         &params.OtelCol.Spec.ShareProcessNamespace,
 					Tolerations:                   params.OtelCol.Spec.Tolerations,
 					NodeSelector:                  params.OtelCol.Spec.NodeSelector,
 					SecurityContext:               params.OtelCol.Spec.PodSecurityContext,
