@@ -59,21 +59,29 @@ func ConfigMap(params manifests.Params) (*corev1.ConfigMap, error) {
 	if len(params.OtelCol.Spec.TargetAllocator.AllocationStrategy) > 0 {
 		taConfig["allocation_strategy"] = params.OtelCol.Spec.TargetAllocator.AllocationStrategy
 	} else {
-		taConfig["allocation_strategy"] = v1alpha1.OpenTelemetryTargetAllocatorAllocationStrategyLeastWeighted
+		taConfig["allocation_strategy"] = v1alpha1.OpenTelemetryTargetAllocatorAllocationStrategyConsistentHashing
 	}
 
-	if len(params.OtelCol.Spec.TargetAllocator.FilterStrategy) > 0 {
-		taConfig["filter_strategy"] = params.OtelCol.Spec.TargetAllocator.FilterStrategy
-	}
+	taConfig["filter_strategy"] = params.OtelCol.Spec.TargetAllocator.FilterStrategy
 
 	if params.OtelCol.Spec.TargetAllocator.PrometheusCR.ScrapeInterval.Size() > 0 {
 		prometheusCRConfig["scrape_interval"] = params.OtelCol.Spec.TargetAllocator.PrometheusCR.ScrapeInterval.Duration
 	}
 
+	prometheusCRConfig["service_monitor_selector"] = &metav1.LabelSelector{
+		MatchLabels: params.OtelCol.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector,
+	}
+	// The below instruction is here for compatibility with the previous target allocator version
+	// TODO: Drop it after 3 more versions
 	if params.OtelCol.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector != nil {
 		taConfig["service_monitor_selector"] = &params.OtelCol.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector
 	}
 
+	prometheusCRConfig["pod_monitor_selector"] = &metav1.LabelSelector{
+		MatchLabels: params.OtelCol.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector,
+	}
+	// The below instruction is here for compatibility with the previous target allocator version
+	// TODO: Drop it after 3 more versions
 	if params.OtelCol.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector != nil {
 		taConfig["pod_monitor_selector"] = &params.OtelCol.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector
 	}

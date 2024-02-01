@@ -27,6 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	colfeaturegate "go.opentelemetry.io/collector/featuregate"
@@ -209,8 +210,9 @@ service:
 										},
 									},
 								},
-								DNSPolicy:          "ClusterFirst",
-								ServiceAccountName: "test-collector",
+								ShareProcessNamespace: ptr.To(false),
+								DNSPolicy:             "ClusterFirst",
+								ServiceAccountName:    "test-collector",
 							},
 						},
 					},
@@ -452,8 +454,9 @@ service:
 										},
 									},
 								},
-								DNSPolicy:          "ClusterFirst",
-								ServiceAccountName: "test-collector",
+								ShareProcessNamespace: ptr.To(false),
+								DNSPolicy:             "ClusterFirst",
+								ServiceAccountName:    "test-collector",
 							},
 						},
 					},
@@ -728,8 +731,9 @@ service:
 										},
 									},
 								},
-								DNSPolicy:          "ClusterFirst",
-								ServiceAccountName: "my-special-sa",
+								ShareProcessNamespace: ptr.To(false),
+								DNSPolicy:             "ClusterFirst",
+								ServiceAccountName:    "my-special-sa",
 							},
 						},
 					},
@@ -1129,7 +1133,8 @@ service:
 						Image:    "test",
 						Config:   goodConfig,
 						TargetAllocator: v1alpha1.OpenTelemetryTargetAllocator{
-							Enabled: true,
+							Enabled:        true,
+							FilterStrategy: "relabel-config",
 							PrometheusCR: v1alpha1.OpenTelemetryTargetAllocatorPrometheusCR{
 								Enabled: true,
 							},
@@ -1237,8 +1242,9 @@ service:
 										},
 									},
 								},
-								DNSPolicy:          "ClusterFirst",
-								ServiceAccountName: "test-collector",
+								ShareProcessNamespace: ptr.To(false),
+								DNSPolicy:             "ClusterFirst",
+								ServiceAccountName:    "test-collector",
 							},
 						},
 						PodManagementPolicy: "Parallel",
@@ -1316,7 +1322,7 @@ service:
 						Annotations: nil,
 					},
 					Data: map[string]string{
-						"targetallocator.yaml": `allocation_strategy: least-weighted
+						"targetallocator.yaml": `allocation_strategy: consistent-hashing
 collector_selector:
   matchlabels:
     app.kubernetes.io/component: opentelemetry-collector
@@ -1340,11 +1346,19 @@ config:
       source_labels:
       - __meta_service_name
       target_label: instance
+filter_strategy: relabel-config
 label_selector:
   app.kubernetes.io/component: opentelemetry-collector
   app.kubernetes.io/instance: test.test
   app.kubernetes.io/managed-by: opentelemetry-operator
   app.kubernetes.io/part-of: opentelemetry
+prometheus_cr:
+  pod_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
+  service_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
 `,
 					},
 				},
@@ -1377,7 +1391,7 @@ label_selector:
 									"app.kubernetes.io/version":    "latest",
 								},
 								Annotations: map[string]string{
-									"opentelemetry-targetallocator-config/hash": "20c09760c240d08287ff05bd2375985220b577d938e82efd85467e17174690e0",
+									"opentelemetry-targetallocator-config/hash": "51477b182d2c9e7c0db27a2cbc9c7d35b24895b1cf0774d51a41b8d1753696ed",
 								},
 							},
 							Spec: corev1.PodSpec{
@@ -1517,6 +1531,7 @@ label_selector:
 							PrometheusCR: v1alpha1.OpenTelemetryTargetAllocatorPrometheusCR{
 								Enabled: true,
 							},
+							FilterStrategy: "relabel-config",
 							Observability: v1alpha1.ObservabilitySpec{
 								Metrics: v1alpha1.MetricsConfigSpec{
 									EnableMetrics: true,
@@ -1626,8 +1641,9 @@ label_selector:
 										},
 									},
 								},
-								DNSPolicy:          "ClusterFirst",
-								ServiceAccountName: "test-collector",
+								ShareProcessNamespace: ptr.To(false),
+								DNSPolicy:             "ClusterFirst",
+								ServiceAccountName:    "test-collector",
 							},
 						},
 						PodManagementPolicy: "Parallel",
@@ -1705,7 +1721,7 @@ label_selector:
 						Annotations: nil,
 					},
 					Data: map[string]string{
-						"targetallocator.yaml": `allocation_strategy: least-weighted
+						"targetallocator.yaml": `allocation_strategy: consistent-hashing
 collector_selector:
   matchlabels:
     app.kubernetes.io/component: opentelemetry-collector
@@ -1729,11 +1745,19 @@ config:
       source_labels:
       - __meta_service_name
       target_label: instance
+filter_strategy: relabel-config
 label_selector:
   app.kubernetes.io/component: opentelemetry-collector
   app.kubernetes.io/instance: test.test
   app.kubernetes.io/managed-by: opentelemetry-operator
   app.kubernetes.io/part-of: opentelemetry
+prometheus_cr:
+  pod_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
+  service_monitor_selector:
+    matchlabels: {}
+    matchexpressions: []
 `,
 					},
 				},
@@ -1766,7 +1790,7 @@ label_selector:
 									"app.kubernetes.io/version":    "latest",
 								},
 								Annotations: map[string]string{
-									"opentelemetry-targetallocator-config/hash": "20c09760c240d08287ff05bd2375985220b577d938e82efd85467e17174690e0",
+									"opentelemetry-targetallocator-config/hash": "51477b182d2c9e7c0db27a2cbc9c7d35b24895b1cf0774d51a41b8d1753696ed",
 								},
 							},
 							Spec: corev1.PodSpec{
