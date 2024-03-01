@@ -40,7 +40,7 @@ func V1Alpha1to2(in v1alpha1.OpenTelemetryCollector) (v1beta1.OpenTelemetryColle
 	out.Spec.OpenTelemetryCommonFields.ManagementState = v1beta1.ManagementStateType(copy.Spec.ManagementState)
 	out.Spec.OpenTelemetryCommonFields.Resources = copy.Spec.Resources
 	out.Spec.OpenTelemetryCommonFields.NodeSelector = copy.Spec.NodeSelector
-	out.Spec.OpenTelemetryCommonFields.Args = copy.Spec.NodeSelector
+	out.Spec.OpenTelemetryCommonFields.Args = copy.Spec.Args
 	out.Spec.OpenTelemetryCommonFields.Replicas = copy.Spec.Replicas
 
 	if copy.Spec.Autoscaler != nil {
@@ -50,6 +50,12 @@ func V1Alpha1to2(in v1alpha1.OpenTelemetryCollector) (v1beta1.OpenTelemetryColle
 				Type: m.Type,
 				Pods: m.Pods,
 			}
+		}
+		if copy.Spec.MaxReplicas != nil && copy.Spec.Autoscaler.MaxReplicas == nil {
+			copy.Spec.Autoscaler.MaxReplicas = copy.Spec.MaxReplicas
+		}
+		if copy.Spec.MinReplicas != nil && copy.Spec.Autoscaler.MinReplicas == nil {
+			copy.Spec.Autoscaler.MinReplicas = copy.Spec.MinReplicas
 		}
 		out.Spec.OpenTelemetryCommonFields.Autoscaler = &v1beta1.AutoscalerSpec{
 			MinReplicas:             copy.Spec.Autoscaler.MinReplicas,
