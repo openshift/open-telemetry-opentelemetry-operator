@@ -323,6 +323,90 @@ func Test_tov1beta1AndBack(t *testing.T) {
 	assert.Equal(t, colalpha1, colalpha1Converted)
 }
 
+func Test_tov1beta1AndBack_prometheus_selectors(t *testing.T) {
+	t.Run("nil-selectors", func(t *testing.T) {
+		colalpha1 := OpenTelemetryCollector{
+			Spec: OpenTelemetryCollectorSpec{
+				TargetAllocator: OpenTelemetryTargetAllocator{
+					PrometheusCR: OpenTelemetryTargetAllocatorPrometheusCR{
+						// nil or empty map means select everything
+						PodMonitorSelector:     nil,
+						ServiceMonitorSelector: nil,
+					},
+				},
+			},
+		}
+
+		colbeta1 := v1beta1.OpenTelemetryCollector{}
+		err := colalpha1.ConvertTo(&colbeta1)
+		require.NoError(t, err)
+
+		// nil LabelSelector means select nothing
+		// empty LabelSelector mean select everything
+		assert.NotNil(t, colbeta1.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector)
+		assert.NotNil(t, colbeta1.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector)
+		assert.Equal(t, 0, len(colalpha1.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector))
+		assert.Equal(t, 0, len(colalpha1.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector))
+
+		err = colalpha1.ConvertFrom(&colbeta1)
+		require.NoError(t, err)
+		assert.Nil(t, colalpha1.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector)
+		assert.Nil(t, colalpha1.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector)
+	})
+	t.Run("empty-selectors", func(t *testing.T) {
+		colalpha1 := OpenTelemetryCollector{
+			Spec: OpenTelemetryCollectorSpec{
+				TargetAllocator: OpenTelemetryTargetAllocator{
+					PrometheusCR: OpenTelemetryTargetAllocatorPrometheusCR{
+						// nil or empty map means select everything
+						PodMonitorSelector:     map[string]string{},
+						ServiceMonitorSelector: map[string]string{},
+					},
+				},
+			},
+		}
+
+		colbeta1 := v1beta1.OpenTelemetryCollector{}
+		err := colalpha1.ConvertTo(&colbeta1)
+		require.NoError(t, err)
+
+		// nil LabelSelector means select nothing
+		// empty LabelSelector mean select everything
+		assert.NotNil(t, colbeta1.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector)
+		assert.NotNil(t, colbeta1.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector)
+
+		err = colalpha1.ConvertFrom(&colbeta1)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]string{}, colalpha1.Spec.TargetAllocator.PrometheusCR.PodMonitorSelector)
+		assert.Equal(t, map[string]string{}, colalpha1.Spec.TargetAllocator.PrometheusCR.ServiceMonitorSelector)
+	})
+}
+
+func Test_tov1beta1AndBack_deprecated_replicas(t *testing.T) {
+	one := int32(1)
+	two := int32(2)
+	colalpha1 := OpenTelemetryCollector{
+		Spec: OpenTelemetryCollectorSpec{
+			MinReplicas: &one,
+			MaxReplicas: &two,
+		},
+	}
+
+	colbeta1 := v1beta1.OpenTelemetryCollector{}
+	err := colalpha1.ConvertTo(&colbeta1)
+	require.NoError(t, err)
+
+	assert.Equal(t, one, *colbeta1.Spec.Autoscaler.MinReplicas)
+	assert.Equal(t, two, *colbeta1.Spec.Autoscaler.MaxReplicas)
+
+	err = colalpha1.ConvertFrom(&colbeta1)
+	require.NoError(t, err)
+	assert.Nil(t, colalpha1.Spec.MinReplicas)
+	assert.Nil(t, colalpha1.Spec.MaxReplicas)
+	assert.Equal(t, one, *colalpha1.Spec.Autoscaler.MinReplicas)
+	assert.Equal(t, two, *colalpha1.Spec.Autoscaler.MaxReplicas)
+}
+
 func createTA() OpenTelemetryTargetAllocator {
 	replicas := int32(2)
 	runAsNonRoot := true
