@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +kubebuilder:skip
-
 package v1beta1
 
 import (
@@ -28,6 +26,7 @@ func init() {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:shortName=otelcol;otelcols
+// +kubebuilder:storageversion
 // +kubebuilder:subresource:status
 // +kubebuilder:subresource:scale:specpath=.spec.replicas,statuspath=.status.scale.replicas,selectorpath=.status.scale.selector
 // +kubebuilder:printcolumn:name="Mode",type="string",JSONPath=".spec.mode",description="Deployment Mode"
@@ -144,6 +143,7 @@ type TargetAllocatorEmbedded struct {
 	// AllocationStrategy determines which strategy the target allocator should use for allocation.
 	// The current options are least-weighted, consistent-hashing and per-node. The default is
 	// consistent-hashing.
+	// WARNING: The per-node strategy currently ignores targets without a Node, like control plane components.
 	// +optional
 	// +kubebuilder:default:=consistent-hashing
 	AllocationStrategy TargetAllocatorAllocationStrategy `json:"allocationStrategy,omitempty"`
