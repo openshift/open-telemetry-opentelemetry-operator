@@ -184,7 +184,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_TRACES_EXPORTER",
@@ -245,6 +245,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(),
 		},
 		{
 			name: "javaagent injection multiple containers, true",
@@ -388,7 +389,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_TRACES_EXPORTER",
@@ -479,7 +480,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_TRACES_EXPORTER",
@@ -540,6 +541,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
+			config: config.New(),
 		},
 		{
 			name: "javaagent injection feature gate disabled",
@@ -629,13 +631,7 @@ func TestMutatePod(t *testing.T) {
 					},
 				},
 			},
-			setFeatureGates: func(t *testing.T) {
-				originalVal := featuregate.EnableJavaAutoInstrumentationSupport.IsEnabled()
-				require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableJavaAutoInstrumentationSupport.ID(), false))
-				t.Cleanup(func() {
-					require.NoError(t, colfeaturegate.GlobalRegistry().Set(featuregate.EnableJavaAutoInstrumentationSupport.ID(), originalVal))
-				})
-			},
+			config: config.New(config.WithEnableJavaInstrumentation(false)),
 		},
 		{
 			name: "nodejs injection, true",
@@ -3821,7 +3817,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -3884,7 +3880,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -4605,7 +4601,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",
@@ -4668,7 +4664,7 @@ func TestMutatePod(t *testing.T) {
 								},
 								{
 									Name:  "JAVA_TOOL_OPTIONS",
-									Value: javaJVMArgument,
+									Value: javaAgent,
 								},
 								{
 									Name:  "OTEL_SERVICE_NAME",

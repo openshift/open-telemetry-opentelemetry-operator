@@ -22,9 +22,9 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/mitchellh/mapstructure"
 	corev1 "k8s.io/api/core/v1"
 
+	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser"
 	exporterParser "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/exporter"
 	receiverParser "github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/parser/receiver"
@@ -43,7 +43,7 @@ func (c ComponentType) String() string {
 }
 
 // ConfigToComponentPorts converts the incoming configuration object into a set of service ports required by the exporters.
-func ConfigToComponentPorts(logger logr.Logger, cType ComponentType, config map[interface{}]interface{}) ([]corev1.ServicePort, error) {
+func ConfigToComponentPorts(logger logr.Logger, cType ComponentType, config map[interface{}]interface{}) ([]v1beta1.PortsSpec, error) {
 	// now, we gather which ports we might need to open
 	// for that, we get all the exporters and check their `endpoint` properties,
 	// extracting the port from it. The port name has to be a "DNS_LABEL", so, we try to make it follow the pattern:
@@ -119,10 +119,17 @@ func ConfigToComponentPorts(logger logr.Logger, cType ComponentType, config map[
 		return ports[i].Name < ports[j].Name
 	})
 
-	return ports, nil
+	patchedPorts := []v1beta1.PortsSpec{}
+	for _, p := range ports {
+		patchedPorts = append(patchedPorts, v1beta1.PortsSpec{
+			ServicePort: p,
+		})
+	}
+
+	return patchedPorts, nil
 }
 
-func ConfigToPorts(logger logr.Logger, config map[interface{}]interface{}) ([]corev1.ServicePort, error) {
+func ConfigToPorts(logger logr.Logger, config map[interface{}]interface{}) ([]v1beta1.PortsSpec, error) {
 	ports, err := ConfigToComponentPorts(logger, ComponentTypeReceiver, config)
 	if err != nil {
 		logger.Error(err, "there was a problem while getting the ports from the receivers")
@@ -145,29 +152,12 @@ func ConfigToPorts(logger logr.Logger, config map[interface{}]interface{}) ([]co
 }
 
 // ConfigToMetricsPort gets the port number for the metrics endpoint from the collector config if it has been set.
-func ConfigToMetricsPort(logger logr.Logger, config map[interface{}]interface{}) (int32, error) {
-	// we don't need to unmarshal the whole config, just follow the keys down to
-	// the metrics address.
-	type metricsCfg struct {
-		Address string
+func ConfigToMetricsPort(config v1beta1.Service) (int32, error) {
+	if config.GetTelemetry() == nil {
+		// telemetry isn't set, use the default
+		return 8888, nil
 	}
-	type telemetryCfg struct {
-		Metrics metricsCfg
-	}
-	type serviceCfg struct {
-		Telemetry telemetryCfg
-	}
-	type cfg struct {
-		Service serviceCfg
-	}
-
-	var cOut cfg
-	err := mapstructure.Decode(config, &cOut)
-	if err != nil {
-		return 0, err
-	}
-
-	_, port, netErr := net.SplitHostPort(cOut.Service.Telemetry.Metrics.Address)
+	_, port, netErr := net.SplitHostPort(config.GetTelemetry().Metrics.Address)
 	if netErr != nil && strings.Contains(netErr.Error(), "missing port in address") {
 		return 8888, nil
 	} else if netErr != nil {
