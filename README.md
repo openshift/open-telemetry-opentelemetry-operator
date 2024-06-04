@@ -693,6 +693,8 @@ spec:
     serviceAccount: everything-prometheus-operator-needs
     prometheusCR:
       enabled: true
+      serviceMonitorSelector: {}
+      podMonitorSelector: {}
   config:
     receivers:
       prometheus:
@@ -729,7 +731,8 @@ We use `cert-manager` for some features of this operator and the third column sh
 The OpenTelemetry Operator _might_ work on versions outside of the given range, but when opening new issues, please make sure to test your scenario on a supported version.
 
 | OpenTelemetry Operator | Kubernetes     | Cert-Manager |
-|------------------------| -------------- | ------------ |
+|------------------------|----------------| ------------ |
+| v0.101.0               | v1.23 to v1.30 | v1           |
 | v0.100.0               | v1.23 to v1.29 | v1           |
 | v0.99.0                | v1.23 to v1.29 | v1           |
 | v0.98.0                | v1.23 to v1.29 | v1           |
@@ -752,7 +755,6 @@ The OpenTelemetry Operator _might_ work on versions outside of the given range, 
 | v0.81.0                | v1.19 to v1.27 | v1           |
 | v0.80.0                | v1.19 to v1.27 | v1           |
 | v0.79.0                | v1.19 to v1.27 | v1           |
-| v0.78.0                | v1.19 to v1.27 | v1           |
 
 ## Contributing and Developing
 
