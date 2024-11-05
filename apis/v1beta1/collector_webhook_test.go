@@ -83,7 +83,7 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	bv := func(collector v1beta1.OpenTelemetryCollector) admission.Warnings {
+	bv := func(_ context.Context, collector v1beta1.OpenTelemetryCollector) admission.Warnings {
 		var warnings admission.Warnings
 		cfg := config.New(
 			config.WithCollectorImage("default-collector"),
@@ -169,7 +169,7 @@ func TestCollectorDefaultingWebhook(t *testing.T) {
 					Mode:            v1beta1.ModeDeployment,
 					UpgradeStrategy: v1beta1.UpgradeStrategyAutomatic,
 					Config: func() v1beta1.Config {
-						const input = `{"receivers":{"otlp":{"protocols":{"grpc":{"endpoint":"0.0.0.0:4317"},"http":{"endpoint":"0.0.0.0:4318"}}}},"exporters":{"debug":null},"service":{"pipelines":{"traces":{"receivers":["otlp"],"exporters":["debug"]}}}}`
+						const input = `{"receivers":{"otlp":{"protocols":{"grpc":{"endpoint":"0.0.0.0:4317"},"http":{"endpoint":"0.0.0.0:4318"}}}},"exporters":{"debug":null},"service":{"telemetry":{"metrics":{"address":"0.0.0.0:8888"}},"pipelines":{"traces":{"receivers":["otlp"],"exporters":["debug"]}}}}`
 						var cfg v1beta1.Config
 						require.NoError(t, yaml.Unmarshal([]byte(input), &cfg))
 						return cfg
@@ -182,7 +182,7 @@ func TestCollectorDefaultingWebhook(t *testing.T) {
 			otelcol: v1beta1.OpenTelemetryCollector{
 				Spec: v1beta1.OpenTelemetryCollectorSpec{
 					Config: func() v1beta1.Config {
-						const input = `{"receivers":{"otlp":{"protocols":{"grpc":{"headers":{"example":"another"}},"http":{"endpoint":"0.0.0.0:4000"}}}},"exporters":{"debug":null},"service":{"pipelines":{"traces":{"receivers":["otlp"],"exporters":["debug"]}}}}`
+						const input = `{"receivers":{"otlp":{"protocols":{"grpc":{"headers":{"example":"another"}},"http":{"endpoint":"0.0.0.0:4000"}}}},"exporters":{"debug":null},"service":{"telemetry":{"metrics":{"address":"1.2.3.4:7654"}},"pipelines":{"traces":{"receivers":["otlp"],"exporters":["debug"]}}}}`
 						var cfg v1beta1.Config
 						require.NoError(t, yaml.Unmarshal([]byte(input), &cfg))
 						return cfg
@@ -201,7 +201,7 @@ func TestCollectorDefaultingWebhook(t *testing.T) {
 					Mode:            v1beta1.ModeDeployment,
 					UpgradeStrategy: v1beta1.UpgradeStrategyAutomatic,
 					Config: func() v1beta1.Config {
-						const input = `{"receivers":{"otlp":{"protocols":{"grpc":{"endpoint":"0.0.0.0:4317","headers":{"example":"another"}},"http":{"endpoint":"0.0.0.0:4000"}}}},"exporters":{"debug":null},"service":{"pipelines":{"traces":{"receivers":["otlp"],"exporters":["debug"]}}}}`
+						const input = `{"receivers":{"otlp":{"protocols":{"grpc":{"endpoint":"0.0.0.0:4317","headers":{"example":"another"}},"http":{"endpoint":"0.0.0.0:4000"}}}},"exporters":{"debug":null},"service":{"telemetry":{"metrics":{"address":"1.2.3.4:7654"}},"pipelines":{"traces":{"receivers":["otlp"],"exporters":["debug"]}}}}`
 						var cfg v1beta1.Config
 						require.NoError(t, yaml.Unmarshal([]byte(input), &cfg))
 						return cfg
@@ -518,7 +518,7 @@ func TestCollectorDefaultingWebhook(t *testing.T) {
 		},
 	}
 
-	bv := func(collector v1beta1.OpenTelemetryCollector) admission.Warnings {
+	bv := func(_ context.Context, collector v1beta1.OpenTelemetryCollector) admission.Warnings {
 		var warnings admission.Warnings
 		cfg := config.New(
 			config.WithCollectorImage("default-collector"),
@@ -554,6 +554,9 @@ func TestCollectorDefaultingWebhook(t *testing.T) {
 			)
 			ctx := context.Background()
 			err := cvw.Default(ctx, &test.otelcol)
+			if test.expected.Spec.Config.Service.Telemetry == nil {
+				assert.NoError(t, test.expected.Spec.Config.Service.ApplyDefaults(), "could not apply defaults")
+			}
 			assert.NoError(t, err)
 			assert.Equal(t, test.expected, test.otelcol)
 		})
@@ -648,6 +651,10 @@ func TestOTELColValidatingWebhook(t *testing.T) {
 			name:          "prom CR admissions warning",
 			shouldFailSar: true, // force failure
 			otelcol: v1beta1.OpenTelemetryCollector{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "adm-warning",
+					Namespace: "test-ns",
+				},
 				Spec: v1beta1.OpenTelemetryCollectorSpec{
 					Mode: v1beta1.ModeStatefulSet,
 					OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
@@ -690,18 +697,18 @@ func TestOTELColValidatingWebhook(t *testing.T) {
 				},
 			},
 			expectedWarnings: []string{
-				"missing the following rules for monitoring.coreos.com/servicemonitors: [*]",
-				"missing the following rules for monitoring.coreos.com/podmonitors: [*]",
-				"missing the following rules for nodes/metrics: [get,list,watch]",
-				"missing the following rules for services: [get,list,watch]",
-				"missing the following rules for endpoints: [get,list,watch]",
-				"missing the following rules for namespaces: [get,list,watch]",
-				"missing the following rules for networking.k8s.io/ingresses: [get,list,watch]",
-				"missing the following rules for nodes: [get,list,watch]",
-				"missing the following rules for pods: [get,list,watch]",
-				"missing the following rules for configmaps: [get]",
-				"missing the following rules for discovery.k8s.io/endpointslices: [get,list,watch]",
-				"missing the following rules for nonResourceURL: /metrics: [get]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - monitoring.coreos.com/servicemonitors: [*]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - monitoring.coreos.com/podmonitors: [*]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - nodes/metrics: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - services: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - endpoints: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - namespaces: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - networking.k8s.io/ingresses: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - nodes: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - pods: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - configmaps: [get]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - discovery.k8s.io/endpointslices: [get,list,watch]",
+				"missing the following rules for system:serviceaccount:test-ns:adm-warning-targetallocator - nonResourceURL: /metrics: [get]",
 			},
 		},
 		{
@@ -759,6 +766,21 @@ func TestOTELColValidatingWebhook(t *testing.T) {
 				},
 			},
 			expectedErr: "does not support the attribute 'volumeClaimTemplates'",
+		},
+		{
+			name: "invalid mode with persistentVolumeClaimRetentionPolicy",
+			otelcol: v1beta1.OpenTelemetryCollector{
+				Spec: v1beta1.OpenTelemetryCollectorSpec{
+					Mode: v1beta1.ModeSidecar,
+					StatefulSetCommonFields: v1beta1.StatefulSetCommonFields{
+						PersistentVolumeClaimRetentionPolicy: &appsv1.StatefulSetPersistentVolumeClaimRetentionPolicy{
+							WhenDeleted: appsv1.RetainPersistentVolumeClaimRetentionPolicyType,
+							WhenScaled:  appsv1.DeletePersistentVolumeClaimRetentionPolicyType,
+						},
+					},
+				},
+			},
+			expectedErr: "does not support the attribute 'persistentVolumeClaimRetentionPolicy'",
 		},
 		{
 			name: "invalid mode with tolerations",
@@ -1343,7 +1365,7 @@ func TestOTELColValidatingWebhook(t *testing.T) {
 		},
 	}
 
-	bv := func(collector v1beta1.OpenTelemetryCollector) admission.Warnings {
+	bv := func(_ context.Context, collector v1beta1.OpenTelemetryCollector) admission.Warnings {
 		var warnings admission.Warnings
 		cfg := config.New(
 			config.WithCollectorImage("default-collector"),
@@ -1411,7 +1433,7 @@ func TestOTELColValidateUpdateWebhook(t *testing.T) {
 		},
 	}
 
-	bv := func(collector v1beta1.OpenTelemetryCollector) admission.Warnings {
+	bv := func(_ context.Context, collector v1beta1.OpenTelemetryCollector) admission.Warnings {
 		var warnings admission.Warnings
 		cfg := config.New(
 			config.WithCollectorImage("default-collector"),

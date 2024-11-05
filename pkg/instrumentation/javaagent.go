@@ -24,20 +24,16 @@ import (
 
 const (
 	envJavaToolsOptions   = "JAVA_TOOL_OPTIONS"
-	javaAgent             = " -javaagent:/otel-auto-instrumentation-java/javaagent.jar"
+	javaAgent             = "-javaagent:/otel-auto-instrumentation-java/javaagent.jar"
 	javaInitContainerName = initContainerName + "-java"
 	javaVolumeName        = volumeName + "-java"
 	javaInstrMountPath    = "/otel-auto-instrumentation-java"
 )
 
-func injectJavaagent(javaSpec v1alpha1.Java, pod corev1.Pod, index int) (corev1.Pod, error) {
+func injectJavaagent(javaSpec v1alpha1.Java, pod corev1.Pod, index int) corev1.Pod {
+	volume := instrVolume(javaSpec.VolumeClaimTemplate, javaVolumeName, javaSpec.VolumeSizeLimit)
 	// caller checks if there is at least one container.
 	container := &pod.Spec.Containers[index]
-
-	err := validateContainerEnv(container.Env, envJavaToolsOptions)
-	if err != nil {
-		return pod, err
-	}
 
 	// inject Java instrumentation spec env vars.
 	for _, env := range javaSpec.Env {
@@ -53,37 +49,30 @@ func injectJavaagent(javaSpec v1alpha1.Java, pod corev1.Pod, index int) (corev1.
 	}
 
 	idx := getIndexOfEnv(container.Env, envJavaToolsOptions)
-	if idx == -1 {
-		container.Env = append(container.Env, corev1.EnvVar{
-			Name:  envJavaToolsOptions,
-			Value: javaJVMArgument,
-		})
-	} else {
-		container.Env[idx].Value = container.Env[idx].Value + javaJVMArgument
+	if idx != -1 {
+		// https://kubernetes.io/docs/tasks/inject-data-application/define-interdependent-environment-variables/
+		javaJVMArgument = fmt.Sprintf("$(%s) %s", envJavaToolsOptions, javaJVMArgument)
 	}
+	container.Env = append(container.Env, corev1.EnvVar{
+		Name:  envJavaToolsOptions,
+		Value: javaJVMArgument,
+	})
 
 	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
-		Name:      javaVolumeName,
+		Name:      volume.Name,
 		MountPath: javaInstrMountPath,
 	})
 
 	// We just inject Volumes and init containers for the first processed container.
 	if isInitContainerMissing(pod, javaInitContainerName) {
-		pod.Spec.Volumes = append(pod.Spec.Volumes, corev1.Volume{
-			Name: javaVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{
-					SizeLimit: volumeSize(javaSpec.VolumeSizeLimit),
-				},
-			}})
-
+		pod.Spec.Volumes = append(pod.Spec.Volumes, volume)
 		pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 			Name:      javaInitContainerName,
 			Image:     javaSpec.Image,
 			Command:   []string{"cp", "/javaagent.jar", javaInstrMountPath + "/javaagent.jar"},
 			Resources: javaSpec.Resources,
 			VolumeMounts: []corev1.VolumeMount{{
-				Name:      javaVolumeName,
+				Name:      volume.Name,
 				MountPath: javaInstrMountPath,
 			}},
 		})
@@ -95,12 +84,12 @@ func injectJavaagent(javaSpec v1alpha1.Java, pod corev1.Pod, index int) (corev1.
 				Command:   []string{"cp", "-r", extension.Dir + "/.", javaInstrMountPath + "/extensions"},
 				Resources: javaSpec.Resources,
 				VolumeMounts: []corev1.VolumeMount{{
-					Name:      javaVolumeName,
+					Name:      volume.Name,
 					MountPath: javaInstrMountPath,
 				}},
 			})
 		}
 
 	}
-	return pod, err
+	return pod
 }
