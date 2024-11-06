@@ -398,17 +398,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO: Uncomment the line below to enable the Target Allocator controller
-	//if err = controllers.NewTargetAllocatorReconciler(
-	//	mgr.GetClient(),
-	//	mgr.GetScheme(),
-	//	mgr.GetEventRecorderFor("targetallocator"),
-	//	cfg,
-	//	ctrl.Log.WithName("controllers").WithName("TargetAllocator"),
-	//).SetupWithManager(mgr); err != nil {
-	//	setupLog.Error(err, "unable to create controller", "controller", "TargetAllocator")
-	//	os.Exit(1)
-	//}
+	if featuregate.CollectorUsesTargetAllocatorCR.IsEnabled() {
+		if err = controllers.NewTargetAllocatorReconciler(
+			mgr.GetClient(),
+			mgr.GetScheme(),
+			mgr.GetEventRecorderFor("targetallocator"),
+			cfg,
+			ctrl.Log.WithName("controllers").WithName("TargetAllocator"),
+		).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "TargetAllocator")
+			os.Exit(1)
+		}
+	}
 
 	if err = controllers.NewOpAMPBridgeReconciler(controllers.OpAMPBridgeReconcilerParams{
 		Client:   mgr.GetClient(),
@@ -437,9 +438,9 @@ func main() {
 
 		}
 
-		bv := func(collector otelv1beta1.OpenTelemetryCollector) admission.Warnings {
+		bv := func(ctx context.Context, collector otelv1beta1.OpenTelemetryCollector) admission.Warnings {
 			var warnings admission.Warnings
-			params, newErr := collectorReconciler.GetParams(collector)
+			params, newErr := collectorReconciler.GetParams(ctx, collector)
 			if err != nil {
 				warnings = append(warnings, newErr.Error())
 				return warnings
@@ -462,11 +463,12 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "OpenTelemetryCollector")
 			os.Exit(1)
 		}
-		// TODO: Uncomment the line below to enable the Target Allocator webhook
-		//if err = otelv1alpha1.SetupTargetAllocatorWebhook(mgr, cfg, reviewer); err != nil {
-		//	setupLog.Error(err, "unable to create webhook", "webhook", "TargetAllocator")
-		//	os.Exit(1)
-		//}
+		if featuregate.CollectorUsesTargetAllocatorCR.IsEnabled() {
+			if err = otelv1alpha1.SetupTargetAllocatorWebhook(mgr, cfg, reviewer); err != nil {
+				setupLog.Error(err, "unable to create webhook", "webhook", "TargetAllocator")
+				os.Exit(1)
+			}
+		}
 		if err = otelv1alpha1.SetupInstrumentationWebhook(mgr, cfg); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Instrumentation")
 			os.Exit(1)
