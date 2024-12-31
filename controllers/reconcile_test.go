@@ -88,8 +88,8 @@ func TestOpenTelemetryCollectorReconciler_Reconcile(t *testing.T) {
 	registry := colfeaturegate.GlobalRegistry()
 	current := featuregate.CollectorUsesTargetAllocatorCR.IsEnabled()
 	require.False(t, current, "don't set gates which are enabled by default")
-	err := registry.Set(featuregate.CollectorUsesTargetAllocatorCR.ID(), true)
-	require.NoError(t, err)
+	regErr := registry.Set(featuregate.CollectorUsesTargetAllocatorCR.ID(), true)
+	require.NoError(t, regErr)
 	t.Cleanup(func() {
 		err := registry.Set(featuregate.CollectorUsesTargetAllocatorCR.ID(), current)
 		require.NoError(t, err)
@@ -648,6 +648,14 @@ func TestOpenTelemetryCollectorReconciler_Reconcile(t *testing.T) {
 			if !firstCheck.validateErr(t, createErr) {
 				return
 			}
+			// wait until the reconciler sees the object in its cache
+			if createErr == nil {
+				assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+					actual := &v1beta1.OpenTelemetryCollector{}
+					err := reconciler.Get(testContext, nsn, actual)
+					assert.NoError(collect, err)
+				}, time.Second*5, time.Millisecond)
+			}
 			if deletionTimestamp != nil {
 				err := k8sClient.Delete(testContext, &tt.args.params, client.PropagationPolicy(metav1.DeletePropagationForeground))
 				assert.NoError(t, err)
@@ -679,6 +687,13 @@ func TestOpenTelemetryCollectorReconciler_Reconcile(t *testing.T) {
 				if err != nil {
 					continue
 				}
+				// wait until the reconciler sees the object in its cache
+				assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+					actual := &v1alpha1.OpenTelemetryCollector{}
+					err = reconciler.Get(testContext, nsn, actual)
+					assert.NoError(collect, err)
+					assert.Equal(collect, updateParam.Spec, actual.Spec)
+				}, time.Second*5, time.Millisecond)
 				req := k8sreconcile.Request{
 					NamespacedName: nsn,
 				}
@@ -858,6 +873,9 @@ func TestOpenTelemetryCollectorReconciler_VersionedConfigMaps(t *testing.T) {
 			Namespace: metav1.NamespaceDefault,
 		},
 		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				PodDisruptionBudget: &v1beta1.PodDisruptionBudgetSpec{},
+			},
 			ConfigVersions: 1,
 			TargetAllocator: v1beta1.TargetAllocatorEmbedded{
 				Enabled: true,
@@ -937,6 +955,8 @@ func TestOpenTelemetryCollectorReconciler_VersionedConfigMaps(t *testing.T) {
 	}, time.Second*5, time.Millisecond)
 
 	// modify the ConfigMap, it should be kept
+	// wait a second first, as K8s creation timestamps only have second precision
+	time.Sleep(time.Second)
 	err = k8sClient.Get(clientCtx, nsn, collector)
 	require.NoError(t, err)
 	collector.Spec.Config.Exporters.Object["debug"] = map[string]interface{}{}
@@ -961,6 +981,8 @@ func TestOpenTelemetryCollectorReconciler_VersionedConfigMaps(t *testing.T) {
 	}, time.Second*5, time.Millisecond)
 
 	// modify the ConfigMap again, the oldest one is still kept, but is dropped after next reconciliation
+	// wait a second first, as K8s creation timestamps only have second precision
+	time.Sleep(time.Second)
 	err = k8sClient.Get(clientCtx, nsn, collector)
 	require.NoError(t, err)
 	collector.Spec.Config.Exporters.Object["debug/2"] = map[string]interface{}{}
@@ -978,8 +1000,7 @@ func TestOpenTelemetryCollectorReconciler_VersionedConfigMaps(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(collect *assert.CollectT) {
 		configMaps := &v1.ConfigMapList{}
-		// use the reconciler client here to ensure it sees the new ConfigMap, before running the next reconciliation
-		listErr := reconciler.Client.List(clientCtx, configMaps, opts...)
+		listErr := k8sClient.List(clientCtx, configMaps, opts...)
 		assert.NoError(collect, listErr)
 		assert.NotEmpty(collect, configMaps)
 		assert.Len(collect, configMaps.Items, 4)
@@ -993,12 +1014,8 @@ func TestOpenTelemetryCollectorReconciler_VersionedConfigMaps(t *testing.T) {
 		listErr := k8sClient.List(clientCtx, configMaps, opts...)
 		assert.NoError(collect, listErr)
 		assert.NotEmpty(collect, configMaps)
-		// actual deletion can happen with a delay in a K8s cluster, check the timestamp instead to speed things up
-		items := slices.DeleteFunc(configMaps.Items, func(item v1.ConfigMap) bool {
-			return item.DeletionTimestamp != nil
-		})
-		assert.Len(collect, items, 3)
-	}, time.Second*30, time.Second) // not sure why this can take so long to bubble up
+		assert.Len(collect, configMaps.Items, 3)
+	}, time.Second*5, time.Second)
 }
 
 func TestOpAMPBridgeReconciler_Reconcile(t *testing.T) {
@@ -1263,6 +1280,13 @@ service:
 	// delete collector and check if the cluster role was deleted
 	clientErr = k8sClient.Delete(context.Background(), otelcol)
 	require.NoError(t, clientErr)
+	// wait until the reconciler sees the object as deleted in its cache
+	assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+		actual := &v1beta1.OpenTelemetryCollector{}
+		err := reconciler.Get(context.Background(), nsn, actual)
+		assert.NoError(collect, err)
+		assert.NotNil(t, actual.GetDeletionTimestamp())
+	}, time.Second*5, time.Millisecond)
 
 	reconcile, reconcileErr = reconciler.Reconcile(context.Background(), req)
 	require.NoError(t, reconcileErr)
