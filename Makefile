@@ -59,7 +59,7 @@ endif
 
 START_KIND_CLUSTER ?= true
 
-KUBE_VERSION ?= 1.31
+KUBE_VERSION ?= 1.32
 KIND_CONFIG ?= kind-$(KUBE_VERSION).yaml
 KIND_CLUSTER_NAME ?= "otel-operator"
 
@@ -492,11 +492,11 @@ GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 CHAINSAW ?= $(LOCALBIN)/chainsaw
 
 # renovate: datasource=go depName=sigs.k8s.io/kustomize/kustomize/v5
-KUSTOMIZE_VERSION ?= v5.5.0
+KUSTOMIZE_VERSION ?= v5.6.0
 # renovate: datasource=go depName=sigs.k8s.io/controller-tools/cmd/controller-gen
-CONTROLLER_TOOLS_VERSION ?= v0.17.0
+CONTROLLER_TOOLS_VERSION ?= v0.17.1
 # renovate: datasource=go depName=github.com/golangci/golangci-lint/cmd/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.62.2
+GOLANGCI_LINT_VERSION ?= v1.63.4
 # renovate: datasource=go depName=sigs.k8s.io/kind
 KIND_VERSION ?= v0.26.0
 # renovate: datasource=go depName=github.com/kyverno/chainsaw
