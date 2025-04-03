@@ -25,10 +25,10 @@ require (
 	github.com/openshift/api v0.0.0-20240124164020-e2ce40831f2e
 	github.com/operator-framework/api v0.30.0
 	github.com/operator-framework/operator-lib v0.17.0
-	github.com/prometheus-operator/prometheus-operator v0.78.2
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.78.2
-	github.com/prometheus-operator/prometheus-operator/pkg/client v0.78.2
-	github.com/prometheus/client_golang v1.21.1
+	github.com/prometheus-operator/prometheus-operator v0.80.1
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.80.1
+	github.com/prometheus-operator/prometheus-operator/pkg/client v0.80.1
+	github.com/prometheus/client_golang v1.21.0
 	github.com/prometheus/common v0.63.0
 	github.com/prometheus/prometheus v0.301.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
@@ -122,7 +122,6 @@ require (
 	github.com/goccy/go-json v0.10.5
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
-	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.6.9 // indirect
 	github.com/google/go-cmp v0.7.0
