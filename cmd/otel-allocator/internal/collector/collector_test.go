@@ -190,6 +190,251 @@ func Test_runWatch(t *testing.T) {
 				mapMutex.Lock()
 				defer mapMutex.Unlock()
 				assert.Len(collect, actual, len(tt.want))
+				assert.Equal(collect, tt.want, actual)
+				assert.Equal(collect, testutil.ToFloat64(collectorsDiscovered), float64(len(actual)))
+			}, time.Second*30, time.Millisecond*100)
+		})
+	}
+}
+
+func Test_gracePeriodWithNonRunningPodPhase(t *testing.T) {
+	namespace := "test-ns"
+	type args struct {
+		collectorNotReadyGracePeriod time.Duration
+		collectorMap                 map[string]*allocation.Collector
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]*allocation.Collector
+	}{
+		{
+			name: "collector healthiness check disabled",
+			args: args{
+				collectorNotReadyGracePeriod: 0 * time.Second,
+				collectorMap: map[string]*allocation.Collector{
+					"test-pod-running": {
+						Name:     "test-pod-running",
+						NodeName: "test-node",
+					},
+					"test-pod-unknown-within-grace-period": {
+						Name:     "test-pod-unknown-within-grace-period",
+						NodeName: "test-node",
+					},
+					"test-pod-pending-over-grace-period": {
+						Name:     "test-pod-pending-over-grace-period",
+						NodeName: "test-node",
+					},
+				},
+			},
+			want: map[string]*allocation.Collector{
+				"test-pod-running": {
+					Name:     "test-pod-running",
+					NodeName: "test-node",
+				},
+				"test-pod-unknown-within-grace-period": {
+					Name:     "test-pod-unknown-within-grace-period",
+					NodeName: "test-node",
+				},
+				"test-pod-pending-over-grace-period": {
+					Name:     "test-pod-pending-over-grace-period",
+					NodeName: "test-node",
+				},
+			},
+		},
+		{
+			name: "collector healthiness check enabled",
+			args: args{
+				collectorNotReadyGracePeriod: 30 * time.Second,
+				collectorMap: map[string]*allocation.Collector{
+					"test-pod-running": {
+						Name:     "test-pod-running",
+						NodeName: "test-node",
+					},
+					"test-pod-unknown-within-grace-period": {
+						Name:     "test-pod-unknown-within-grace-period",
+						NodeName: "test-node",
+					},
+					"test-pod-pending-over-grace-period": {
+						Name:     "test-pod-pending-over-grace-period",
+						NodeName: "test-node",
+					},
+				},
+			},
+			want: map[string]*allocation.Collector{
+				"test-pod-running": {
+					Name:     "test-pod-running",
+					NodeName: "test-node",
+				},
+				"test-pod-unknown-within-grace-period": {
+					Name:     "test-pod-unknown-within-grace-period",
+					NodeName: "test-node",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			timeNow := time.Now()
+			podWatcher := getTestPodWatcher(tt.args.collectorNotReadyGracePeriod)
+			defer func() {
+				close(podWatcher.close)
+			}()
+			var actual map[string]*allocation.Collector
+			mapMutex := sync.Mutex{}
+			for _, k := range tt.args.collectorMap {
+				var p *v1.Pod
+				switch k.Name {
+				case "test-pod-running":
+					p = podWithPodPhaseAndStartTime(k.Name, v1.PodRunning, timeNow)
+				case "test-pod-unknown-within-grace-period":
+					p = podWithPodPhaseAndStartTime(k.Name, v1.PodUnknown,
+						timeNow.Add(-1*podWatcher.collectorNotReadyGracePeriod).Add(podWatcher.collectorNotReadyGracePeriod/2))
+				case "test-pod-pending-over-grace-period":
+					p = podWithPodPhaseAndStartTime(k.Name, v1.PodPending,
+						timeNow.Add(-1*podWatcher.collectorNotReadyGracePeriod).Add(-podWatcher.collectorNotReadyGracePeriod/2))
+				}
+				_, err := podWatcher.k8sClient.CoreV1().Pods("test-ns").Create(context.Background(), p, metav1.CreateOptions{})
+				assert.NoError(t, err)
+			}
+
+			go func(podWatcher Watcher) {
+				err := podWatcher.Watch(namespace, &labelSelector, func(colMap map[string]*allocation.Collector) {
+					mapMutex.Lock()
+					defer mapMutex.Unlock()
+					actual = colMap
+				})
+				require.NoError(t, err)
+			}(podWatcher)
+
+			assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+				mapMutex.Lock()
+				defer mapMutex.Unlock()
+				assert.Len(collect, actual, len(tt.want))
+				assert.Equal(collect, actual, tt.want)
+				assert.Equal(collect, testutil.ToFloat64(collectorsDiscovered), float64(len(actual)))
+			}, time.Second*3, time.Millisecond)
+		})
+	}
+}
+
+func Test_gracePeriodWithNonReadyPodCondition(t *testing.T) {
+	namespace := "test-ns"
+	type args struct {
+		collectorNotReadyGracePeriod time.Duration
+		collectorMap                 map[string]*allocation.Collector
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want map[string]*allocation.Collector
+	}{
+		{
+			name: "collector healthiness check disabled",
+			args: args{
+				collectorNotReadyGracePeriod: 0 * time.Second,
+				collectorMap: map[string]*allocation.Collector{
+					"test-pod-ready": {
+						Name:     "test-pod-ready",
+						NodeName: "test-node",
+					},
+					"test-pod-non-ready-within-grace-period": {
+						Name:     "test-pod-non-ready-within-grace-period",
+						NodeName: "test-node",
+					},
+					"test-pod-non-ready-over-grace-period": {
+						Name:     "test-pod-non-ready-over-grace-period",
+						NodeName: "test-node",
+					},
+				},
+			},
+			want: map[string]*allocation.Collector{
+				"test-pod-ready": {
+					Name:     "test-pod-ready",
+					NodeName: "test-node",
+				},
+				"test-pod-non-ready-within-grace-period": {
+					Name:     "test-pod-non-ready-within-grace-period",
+					NodeName: "test-node",
+				},
+				"test-pod-non-ready-over-grace-period": {
+					Name:     "test-pod-non-ready-over-grace-period",
+					NodeName: "test-node",
+				},
+			},
+		},
+		{
+			name: "collector healthiness check enabled",
+			args: args{
+				collectorNotReadyGracePeriod: 30 * time.Second,
+				collectorMap: map[string]*allocation.Collector{
+					"test-pod-ready": {
+						Name:     "test-pod-ready",
+						NodeName: "test-node",
+					},
+					"test-pod-non-ready-within-grace-period": {
+						Name:     "test-pod-non-ready-within-grace-period",
+						NodeName: "test-node",
+					},
+					"test-pod-non-ready-over-grace-period": {
+						Name:     "test-pod-non-ready-over-grace-period",
+						NodeName: "test-node",
+					},
+				},
+			},
+			want: map[string]*allocation.Collector{
+				"test-pod-ready": {
+					Name:     "test-pod-ready",
+					NodeName: "test-node",
+				},
+				"test-pod-non-ready-within-grace-period": {
+					Name:     "test-pod-non-ready-within-grace-period",
+					NodeName: "test-node",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			timeNow := time.Now()
+			podWatcher := getTestPodWatcher(tt.args.collectorNotReadyGracePeriod)
+			defer func() {
+				close(podWatcher.close)
+			}()
+			var actual map[string]*allocation.Collector
+			mapMutex := sync.Mutex{}
+			for _, k := range tt.args.collectorMap {
+				var p *v1.Pod
+				switch k.Name {
+				case "test-pod-ready":
+					p = podWithPodReadyConditionStatusAndLastTransitionTime(k.Name, v1.ConditionTrue, timeNow)
+				case "test-pod-non-ready-within-grace-period":
+					p = podWithPodReadyConditionStatusAndLastTransitionTime(k.Name, v1.ConditionFalse,
+						timeNow.Add(-1*podWatcher.collectorNotReadyGracePeriod).Add(podWatcher.collectorNotReadyGracePeriod/2))
+				case "test-pod-non-ready-over-grace-period":
+					p = podWithPodReadyConditionStatusAndLastTransitionTime(k.Name, v1.ConditionFalse,
+						timeNow.Add(-1*podWatcher.collectorNotReadyGracePeriod).Add(-podWatcher.collectorNotReadyGracePeriod/2))
+				}
+				_, err := podWatcher.k8sClient.CoreV1().Pods("test-ns").Create(context.Background(), p, metav1.CreateOptions{})
+				assert.NoError(t, err)
+			}
+
+			go func(podWatcher Watcher) {
+				err := podWatcher.Watch(namespace, &labelSelector, func(colMap map[string]*allocation.Collector) {
+					mapMutex.Lock()
+					defer mapMutex.Unlock()
+					actual = colMap
+				})
+				require.NoError(t, err)
+			}(podWatcher)
+
+			assert.EventuallyWithT(t, func(collect *assert.CollectT) {
+				mapMutex.Lock()
+				defer mapMutex.Unlock()
+				assert.Len(collect, actual, len(tt.want))
 				assert.Equal(collect, actual, tt.want)
 				assert.Equal(collect, testutil.ToFloat64(collectorsDiscovered), float64(len(actual)))
 			}, time.Second*3, time.Millisecond)
