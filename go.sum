@@ -413,8 +413,8 @@ github.com/openshift/api v0.0.0-20240124164020-e2ce40831f2e h1:cxgCNo/R769CO23AK
 github.com/openshift/api v0.0.0-20240124164020-e2ce40831f2e/go.mod h1:CxgbWAlvu2iQB0UmKTtRu1YfepRg1/vJ64n2DlIEVz4=
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
 github.com/opentracing/opentracing-go v1.2.0/go.mod h1:GxEUsuufX4nBwe+T+Wl9TAgYrxe9dPLANfrWvHYVTgc=
-github.com/operator-framework/api v0.30.0 h1:44hCmGnEnZk/Miol5o44dhSldNH0EToQUG7vZTl29kk=
-github.com/operator-framework/api v0.30.0/go.mod h1:FYxAPhjtlXSAty/fbn5YJnFagt6SpJZJgFNNbvDe5W0=
+github.com/operator-framework/api v0.31.0 h1:tRsFTuZ51xD8U5QgiPo3+mZgVipHZVgRXYrI6RRXOh8=
+github.com/operator-framework/api v0.31.0/go.mod h1:57oCiHNeWcxmzu1Se8qlnwEKr/GGXnuHvspIYFCcXmY=
 github.com/operator-framework/operator-lib v0.17.0 h1:cbz51wZ9+GpWR1ZYP4CSKSSBxDlWxmmnseaHVZZjZt4=
 github.com/operator-framework/operator-lib v0.17.0/go.mod h1:TGopBxIE8L6E/Cojzo26R3NFp1eNlqhQNmzqhOblaLw=
 github.com/ovh/go-ovh v1.6.0 h1:ixLOwxQdzYDx296sXcgS35TOPEahJkpjMGtzPadCjQI=
@@ -533,8 +533,8 @@ go.mongodb.org/mongo-driver v1.17.2 h1:gvZyk8352qSfzyZ2UMWcpDpMSGEr1eqE4T793Sqyh
 go.mongodb.org/mongo-driver v1.17.2/go.mod h1:Hy04i7O2kC4RS06ZrhPRqj/u4DTYkFDAAccj+rVKqgQ=
 go.opentelemetry.io/auto/sdk v1.1.0 h1:cH53jehLUN6UFLY71z+NDOiNJqDdPRaXzTel0sJySYA=
 go.opentelemetry.io/auto/sdk v1.1.0/go.mod h1:3wSPjt5PWp2RhlCcmmOial7AvC4DQqZb7a7wCow3W8A=
-go.opentelemetry.io/collector/featuregate v1.29.0 h1:DTDeaokT53AA+SiYBH8GC893cmppThU65b3XyFfLPWw=
-go.opentelemetry.io/collector/featuregate v1.29.0/go.mod h1:Y/KsHbvREENKvvN9RlpiWk/IGBK+CATBYzIIpU7nccc=
+go.opentelemetry.io/collector/featuregate v1.31.0 h1:20q7plPQZwmAiaYAa6l1m/i2qDITZuWlhjr4EkmeQls=
+go.opentelemetry.io/collector/featuregate v1.31.0/go.mod h1:Y/KsHbvREENKvvN9RlpiWk/IGBK+CATBYzIIpU7nccc=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 h1:sbiXRNDSWJOTobXh5HyQKjq6wUC5tNybqjIqDpAY4CU=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0/go.mod h1:69uWxva0WgAA/4bu2Yy70SLDBwZXuQ6PbBpbsa5iZrQ=
 go.opentelemetry.io/contrib/otelconf v0.15.0 h1:BLNiIUsrNcqhSKpsa6CnhE6LdrpY1A8X0szMVsu99eo=
@@ -612,8 +612,8 @@ golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwY
 golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/net v0.0.0-20210410081132-afb366fc7cd1/go.mod h1:9tjilg8BloeKEkVJvy7fQ90B1CfIiPueXVOjqfkSzI8=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
-golang.org/x/net v0.37.0 h1:1zLorHbz+LYj7MQlSf1+2tPIIgibq2eL5xkrGk6f+2c=
-golang.org/x/net v0.37.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
+golang.org/x/net v0.38.0 h1:vRMAPTMaeGqVhG5QyLJHqNDwecKTomGeqbnfZyKlBI8=
+golang.org/x/net v0.38.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
 golang.org/x/oauth2 v0.28.0 h1:CrgCKl8PPAVtLnU3c+EDw6x11699EWlsDeWNWKdIOkc=
 golang.org/x/oauth2 v0.28.0/go.mod h1:onh5ek6nERTohokkhCD/y2cV4Do3fxFHFuAejCkRWT8=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
