@@ -22,22 +22,6 @@ import (
 	"github.com/open-telemetry/opentelemetry-operator/internal/config"
 )
 
-func TestNewConfig(t *testing.T) {
-	// prepare
-	cfg := config.New(
-		config.WithCollectorImage("some-image"),
-		config.WithCollectorConfigMapEntry("some-config.yaml"),
-		config.WithOpenShiftRoutesAvailability(openshift.RoutesAvailable),
-		config.WithPrometheusCRAvailability(prometheus.Available),
-	)
-
-	// test
-	assert.Equal(t, "some-image", cfg.CollectorImage)
-	assert.Equal(t, "some-config.yaml", cfg.CollectorConfigMapEntry)
-	assert.Equal(t, openshift.RoutesAvailable, cfg.OpenShiftRoutesAvailability)
-	assert.Equal(t, prometheus.Available, cfg.PrometheusCRAvailability)
-}
-
 func TestConfigChangesOnAutoDetect(t *testing.T) {
 	// prepare
 	mock := &mockAutoDetect{
@@ -149,4 +133,14 @@ func (m *mockAutoDetect) CollectorAvailability() (collector.Availability, error)
 		return m.CollectorAvailabilityFunc()
 	}
 	return collector.NotAvailable, nil
+}
+
+func TestToStringMap(t *testing.T) {
+	cfg := config.Config{
+		OpenShiftRoutesAvailability:       openshift.RoutesAvailable,
+		OperatorOpAMPBridgeConfigMapEntry: "foo.yaml",
+		CollectorImage:                    "myexample:1.0",
+		IgnoreMissingCollectorCRDs:        true,
+	}
+	assert.Equal(t, map[string]string{"auto-instrumentation-apache-httpd-image": "", "auto-instrumentation-dot-net-image": "", "auto-instrumentation-go-image": "", "auto-instrumentation-java-image": "", "auto-instrumentation-nginx-image": "", "auto-instrumentation-node-js-image": "", "auto-instrumentation-python-image": "", "cert-manager-availability": "0", "collector-availability": "0", "collector-configmap-entry": "", "collector-image": "myexample:1.0", "create-rbac-permissions": "0", "enable-apache-httpd-instrumentation": "false", "enable-dot-net-auto-instrumentation": "false", "enable-go-auto-instrumentation": "false", "enable-java-auto-instrumentation": "false", "enable-multi-instrumentation": "false", "enable-nginx-auto-instrumentation": "false", "enable-node-js-auto-instrumentation": "false", "enable-python-auto-instrumentation": "false", "ignore-missing-collector-crds": "true", "opampbridge-availability": "0", "open-shift-routes-availability": "0", "operator-op-amp-bridge-configmap-entry": "foo.yaml", "operatoropampbridge-image": "", "prometheus-cr-availability": "0", "target-allocator-availability": "0", "target-allocator-configmap-entry": "", "targetallocator-image": ""}, cfg.ToStringMap())
 }
