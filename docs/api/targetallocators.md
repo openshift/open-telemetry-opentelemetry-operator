@@ -239,6 +239,13 @@ Default is managed.<br/>
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#targetallocatorspecnetworkpolicy">networkPolicy</a></b></td>
+        <td>object</td>
+        <td>
+          NetworkPolicy defines the network policy to be applied to the Target Allocator pods.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b>nodeSelector</b></td>
         <td>map[string]string</td>
         <td>
@@ -8756,6 +8763,34 @@ Name must be an IANA_SVC_NAME.<br/>
 </table>
 
 
+### TargetAllocator.spec.networkPolicy
+<sup><sup>[↩ Parent](#targetallocatorspec)</sup></sup>
+
+
+
+NetworkPolicy defines the network policy to be applied to the Target Allocator pods.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>enabled</b></td>
+        <td>boolean</td>
+        <td>
+          Enable enables the NetworkPolicy.
+The default value is taken from the operator feature-gate `--feature-gates=+operand.networkpolicy`.<br/>
+        </td>
+        <td>false</td>
+      </tr></tbody>
+</table>
+
+
 ### TargetAllocator.spec.observability
 <sup><sup>[↩ Parent](#targetallocatorspec)</sup></sup>
 
@@ -8812,6 +8847,13 @@ Metrics defines the metrics configuration for operands.
         <td>boolean</td>
         <td>
           EnableMetrics specifies if ServiceMonitor or PodMonitor(for sidecar mode) should be created for the service managed by the OpenTelemetry Operator.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
+        <td><b>extraLabels</b></td>
+        <td>map[string]string</td>
+        <td>
+          ExtraLabels are additional labels to be added to the ServiceMonitor<br/>
         </td>
         <td>false</td>
       </tr></tbody>
