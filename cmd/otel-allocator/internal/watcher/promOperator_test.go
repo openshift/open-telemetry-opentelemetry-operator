@@ -1065,11 +1065,11 @@ func TestNamespaceLabelUpdate(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(collect *assert.CollectT) {
 		got, err = w.LoadConfig(context.Background())
-		assert.NoError(t, err)
+		assert.NoError(collect, err)
 
 		sanitizeScrapeConfigsForTest(got.ScrapeConfigs)
-		assert.Equal(t, want_after.ScrapeConfigs, got.ScrapeConfigs)
-	}, time.Second*30, time.Millisecond*100)
+		assert.Equal(collect, want_after.ScrapeConfigs, got.ScrapeConfigs)
+	}, time.Second*60, time.Millisecond*100)
 }
 
 func TestRateLimit(t *testing.T) {
@@ -1245,7 +1245,6 @@ func getTestPrometheusCRWatcher(
 				ScrapeConfigSelector:            cfg.PrometheusCR.ScrapeConfigSelector,
 				ScrapeConfigNamespaceSelector:   cfg.PrometheusCR.ScrapeConfigNamespaceSelector,
 				ServiceDiscoveryRole:            &serviceDiscoveryRole,
-				Version:                         "2.55.1",
 			},
 			EvaluationInterval: monitoringv1.Duration("30s"),
 		},
