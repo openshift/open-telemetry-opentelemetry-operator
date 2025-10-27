@@ -165,7 +165,7 @@ SED ?= $(shell which gsed 2>/dev/null || which sed)
 ensure-update-is-noop: VERSION=$(OPERATOR_VERSION)
 ensure-update-is-noop: DOCKER_USER=open-telemetry
 ensure-update-is-noop: set-image-controller update
-	@git diff -s --exit-code apis/v1alpha1/zz_generated.*.go || (echo "Build failed: a model has been changed but the generated resources aren't up to date. Run 'make generate' and update your PR." && exit 1)
+	@git diff -s --exit-code apis/**/zz_generated.*.go || (echo "Build failed: a model has been changed but the generated resources aren't up to date. Run 'make generate' and update your PR." && exit 1)
 	@git diff -s --exit-code bundle config || (echo "Build failed: the bundle, config files has been changed but the generated bundle, config files aren't up to date. Run 'make bundle' and update your PR." && git diff && exit 1)
 	@git diff -s --exit-code docs/api || (echo "Build failed: a model has been changed but the generated docs/api/*.md files aren't up to date. Run 'make api-docs' and update your PR." && git diff && exit 1)
 
@@ -226,6 +226,10 @@ add-operator-arg: manifests kustomize
 .PHONY: add-image-targetallocator
 add-image-targetallocator:
 	@$(MAKE) add-operator-arg OPERATOR_ARG=--target-allocator-image=$(TARGETALLOCATOR_IMG)
+
+.PHONY: add-image-collector
+add-image-collector:
+	@$(MAKE) add-operator-arg OPERATOR_ARG=--collector-image=$(COLLECTOR_IMG)
 
 .PHONY: add-image-instrumentation
 add-instrumentation-images:
@@ -301,10 +305,11 @@ test: envtest gotestsum
 .PHONY: precommit
 precommit: fmt vet lint test ensure-update-is-noop
 
-# Run go fmt against code
+# Run formatters
 .PHONY: fmt
-fmt:
+fmt: golangci-lint
 	go fmt ./...
+	$(GOLANGCI_LINT) run --fix
 
 # Run go vet against code
 .PHONY: vet
@@ -600,7 +605,7 @@ KUSTOMIZE_VERSION ?= v5.7.1
 # renovate: datasource=go depName=sigs.k8s.io/controller-tools/cmd/controller-gen
 CONTROLLER_TOOLS_VERSION ?= v0.19.0
 # renovate: datasource=github-releases depName=golangci/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.4.0
+GOLANGCI_LINT_VERSION ?= v2.5.0
 # renovate: datasource=go depName=sigs.k8s.io/kind
 KIND_VERSION ?= v0.30.0
 # renovate: datasource=go depName=github.com/kyverno/chainsaw
@@ -609,7 +614,7 @@ CHAINSAW_VERSION ?= v0.2.13
 GOTESTSUM_VERSION ?= v1.13.0
 
 .PHONY: install-tools
-install-tools: kustomize golangci-lint kind controller-gen envtest crdoc operator-sdk chainsaw gotestsum
+install-tools: kustomize golangci-lint kind controller-gen envtest crdoc operator-sdk chainsaw gotestsum cmctl
 
 .PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
@@ -842,3 +847,12 @@ endif
 	@echo "$(INSTRUMENTATION_DOTNET_IMG)" >>$(IMAGE_LIST_FILE)
 	@echo "$(INSTRUMENTATION_APACHE_HTTPD_IMG)" >>$(IMAGE_LIST_FILE)
 	xargs -x -n 50 docker save -o "$(IMAGE_ARCHIVE)" <$(IMAGE_LIST_FILE)
+
+# Check markdown files for broken links using linkspector
+.PHONY: markdown-link-check
+markdown-link-check:
+	@command -v linkspector >/dev/null 2>&1 || { \
+		echo "Install: npm install -g @umbrelladocs/linkspector"; \
+		exit 1; \
+	}
+	linkspector check
