@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.18.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: opentelemetrycollectors.opentelemetry.io
 spec:
   group: opentelemetry.io
@@ -3486,6 +3486,8 @@ spec:
                   - whenUnsatisfiable
                   type: object
                 type: array
+              trafficDistribution:
+                type: string
               updateStrategy:
                 properties:
                   rollingUpdate:
@@ -5769,6 +5771,7 @@ spec:
                     type: object
                   maxReplicas:
                     format: int32
+                    minimum: 1
                     type: integer
                   metrics:
                     items:
@@ -5842,12 +5845,15 @@ spec:
                     type: array
                   minReplicas:
                     format: int32
+                    minimum: 1
                     type: integer
                   targetCPUUtilization:
                     format: int32
+                    minimum: 1
                     type: integer
                   targetMemoryUtilization:
                     format: int32
+                    minimum: 1
                     type: integer
                 type: object
               config:
@@ -5958,6 +5964,8 @@ spec:
                   type:
                     type: string
                 type: object
+              dnsPolicy:
+                type: string
               env:
                 items:
                   properties:
@@ -6912,21 +6920,27 @@ spec:
                 properties:
                   failureThreshold:
                     format: int32
+                    minimum: 1
                     type: integer
                   initialDelaySeconds:
                     format: int32
+                    minimum: 0
                     type: integer
                   periodSeconds:
                     format: int32
+                    minimum: 1
                     type: integer
                   successThreshold:
                     format: int32
+                    minimum: 1
                     type: integer
                   terminationGracePeriodSeconds:
                     format: int64
+                    minimum: 1
                     type: integer
                   timeoutSeconds:
                     format: int32
+                    minimum: 1
                     type: integer
                 type: object
               managementState:
@@ -6942,6 +6956,11 @@ spec:
                 - sidecar
                 - statefulset
                 type: string
+              networkPolicy:
+                properties:
+                  enabled:
+                    type: boolean
+                type: object
               nodeSelector:
                 additionalProperties:
                   type: string
@@ -7093,6 +7112,8 @@ spec:
                       type: string
                     hostPort:
                       format: int32
+                      maximum: 65535
+                      minimum: 0
                       type: integer
                     name:
                       type: string
@@ -7121,21 +7142,27 @@ spec:
                 properties:
                   failureThreshold:
                     format: int32
+                    minimum: 1
                     type: integer
                   initialDelaySeconds:
                     format: int32
+                    minimum: 0
                     type: integer
                   periodSeconds:
                     format: int32
+                    minimum: 1
                     type: integer
                   successThreshold:
                     format: int32
+                    minimum: 1
                     type: integer
                   terminationGracePeriodSeconds:
                     format: int64
+                    minimum: 1
                     type: integer
                   timeoutSeconds:
                     format: int32
+                    minimum: 1
                     type: integer
                 type: object
               replicas:
@@ -7253,6 +7280,33 @@ spec:
                 type: string
               shareProcessNamespace:
                 type: boolean
+              startupProbe:
+                properties:
+                  failureThreshold:
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  initialDelaySeconds:
+                    format: int32
+                    minimum: 0
+                    type: integer
+                  periodSeconds:
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  successThreshold:
+                    format: int32
+                    minimum: 1
+                    type: integer
+                  terminationGracePeriodSeconds:
+                    format: int64
+                    minimum: 1
+                    type: integer
+                  timeoutSeconds:
+                    format: int32
+                    minimum: 1
+                    type: integer
+                type: object
               targetAllocator:
                 properties:
                   affinity:
@@ -7702,6 +7756,10 @@ spec:
                     - per-node
                     type: string
                   collectorNotReadyGracePeriod:
+                    default: 30s
+                    format: duration
+                    type: string
+                  collectorTargetReloadInterval:
                     default: 30s
                     format: duration
                     type: string
@@ -8266,6 +8324,8 @@ spec:
                   - whenUnsatisfiable
                   type: object
                 type: array
+              trafficDistribution:
+                type: string
               upgradeStrategy:
                 enum:
                 - automatic
