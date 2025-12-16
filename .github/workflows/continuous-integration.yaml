@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Set up Go
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
@@ -28,7 +28,7 @@ jobs:
         go-version: "~1.25.5"
 
     - name: Cache tools
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       with:
         path: bin
         key: tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Makefile') }}-${{ steps.setup-go.outputs.go-version }}
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Set up Go
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
@@ -55,7 +55,7 @@ jobs:
         go-version: "~1.25.5"
 
     - name: Cache tools
-      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       with:
         path: bin
         key: tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('Makefile') }}-${{ steps.setup-go.outputs.go-version }}
@@ -63,7 +63,7 @@ jobs:
     - name: Install tools
       run: make install-tools
 
-    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+    - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5.0.1
       with:
         path: |
           /home/runner/.cache/golangci-lint
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
     - name: Set up Go
       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
@@ -89,15 +89,15 @@ jobs:
         go-version: "~1.25.5"
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@fdbfb4d2750291e159f0156def62b853c2798ca2 # v3.29.5
+      uses: github/codeql-action/init@1b168cd39490f61582a9beae412bb7057a6b2c4e # v3.29.5
       with:
         languages: go
 
     - name: Autobuild
-      uses: github/codeql-action/autobuild@fdbfb4d2750291e159f0156def62b853c2798ca2 # v3.29.5
+      uses: github/codeql-action/autobuild@1b168cd39490f61582a9beae412bb7057a6b2c4e # v3.29.5
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@fdbfb4d2750291e159f0156def62b853c2798ca2 # v3.29.5
+      uses: github/codeql-action/analyze@1b168cd39490f61582a9beae412bb7057a6b2c4e # v3.29.5
 
     - name: Govulncheck
       uses: golang/govulncheck-action@b625fbe08f3bccbe446d94fbf87fcc875a4f50ee # v1.0.4
