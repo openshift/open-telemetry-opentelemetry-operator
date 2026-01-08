@@ -15,7 +15,7 @@ var args = os.Args[1:]
 
 func CreateCLIParser(cfg Config) *pflag.FlagSet {
 	f := pflag.NewFlagSet(os.Args[0], pflag.ContinueOnError)
-	f.ParseErrorsWhitelist.UnknownFlags = true
+	f.ParseErrorsAllowlist.UnknownFlags = true
 	f.String("metrics-addr", cfg.MetricsAddr, "The address the metric endpoint binds to.")
 	f.Bool("metrics-secure", cfg.MetricsSecure, "Enable secure serving for metrics endpoint with authentication and authorization. When enabled ano no TLS certificates are provided, the operator generates self signed certificates.")
 	f.String("metrics-tls-cert-file", cfg.MetricsTLSCertFile, "TLS certificate file for the metrics server")
@@ -113,9 +113,9 @@ func ApplyCLI(cfg *Config) error {
 			case "auto-instrumentation-nginx-image":
 				cfg.AutoInstrumentationNginxImage, _ = f.GetString("auto-instrumentation-nginx-image")
 			case "labels-filter":
-				cfg.LabelsFilter, _ = f.GetStringSlice("labels-filter")
+				cfg.LabelsFilter, _ = f.GetStringArray("labels-filter")
 			case "annotations-filter":
-				cfg.AnnotationsFilter, _ = f.GetStringSlice("annotations-filter")
+				cfg.AnnotationsFilter, _ = f.GetStringArray("annotations-filter")
 			case "openshift-create-dashboard":
 				cfg.OpenshiftCreateDashboard, _ = f.GetBool("openshift-create-dashboard")
 			case "metrics-addr":
