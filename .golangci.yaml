@@ -61,7 +61,8 @@ linters:
         - name: blank-imports
           disabled: true
         - name: context-as-argument
-          disabled: true
+          arguments:
+            - allow-types-before: "*testing.T"
         - name: cognitive-complexity
           disabled: true
         - name: cyclomatic
@@ -71,15 +72,14 @@ linters:
         - name: confusing-results
           disabled: true # FIXME
         - name: comment-spacings
-          disabled: true # FIXME
+          arguments:
+            - +kubebuilder
         - name: deep-exit
           disabled: true # FIXME
         - name: defer
           disabled: true # FIXME
         - name: dot-imports
           disabled: true
-        - name: early-return
-          disabled: true # FIXME
         - name: empty-block
           disabled: true
         - name: enforce-switch-style
@@ -98,16 +98,10 @@ linters:
           disabled: true
         - name: get-return
           disabled: true # FIXME
-        - name: identical-ifelseif-branches
-          disabled: true # FIXME
-        - name: identical-switch-branches
-          disabled: true # FIXME
         - name: import-alias-naming
           disabled: true # FIXME
         - name: import-shadowing
           disabled: true
-        - name: indent-error-flow
-          disabled: true # FIXME
         - name: line-length-limit
           disabled: true
         - name: max-public-structs
