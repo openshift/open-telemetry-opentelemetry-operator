@@ -59,6 +59,7 @@ import (
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/collector/testdata"
 	"github.com/open-telemetry/opentelemetry-operator/internal/manifests/manifestutils"
 	"github.com/open-telemetry/opentelemetry-operator/internal/rbac"
+	wh "github.com/open-telemetry/opentelemetry-operator/internal/webhook"
 )
 
 var (
@@ -219,17 +220,17 @@ func TestMain(m *testing.M) {
 		fmt.Printf("failed to SetupWebhookWithManager: %v", err)
 		os.Exit(1)
 	}
-	if err = v1alpha1.SetupTargetAllocatorWebhook(mgr, config.New(), reviewer); err != nil {
+	if err = wh.SetupTargetAllocatorWebhook(mgr, config.New(), reviewer); err != nil {
 		fmt.Printf("failed to SetupWebhookWithManager: %v", err)
 		os.Exit(1)
 	}
 
-	if err = v1alpha1.SetupTargetAllocatorWebhook(mgr, config.New(), reviewer); err != nil {
+	if err = wh.SetupTargetAllocatorWebhook(mgr, config.New(), reviewer); err != nil {
 		fmt.Printf("failed to SetupWebhookWithManager: %v", err)
 		os.Exit(1)
 	}
 
-	if err = v1alpha1.SetupOpAMPBridgeWebhook(mgr, config.New()); err != nil {
+	if err = wh.SetupOpAMPBridgeWebhook(mgr, config.New()); err != nil {
 		fmt.Printf("failed to SetupWebhookWithManager: %v", err)
 		os.Exit(1)
 	}
@@ -318,7 +319,8 @@ func testCollectorWithModeAndReplicas(t *testing.T, name string, mode v1beta1.Mo
 							IntVal: 80,
 						},
 						NodePort: 0,
-					}}},
+					},
+				}},
 				Replicas: &replicas,
 			},
 			Config: otelConfig,
@@ -327,16 +329,16 @@ func testCollectorWithModeAndReplicas(t *testing.T, name string, mode v1beta1.Mo
 	}
 }
 
-func testCollectorAssertNoErr(t *testing.T, name string, taContainerImage string, file string) v1beta1.OpenTelemetryCollector {
+func testCollectorAssertNoErr(t *testing.T, name, taContainerImage, file string) v1beta1.OpenTelemetryCollector {
 	p, err := testCollectorWithConfigFile(name, taContainerImage, file)
 	assert.NoError(t, err)
-	if len(taContainerImage) == 0 {
+	if taContainerImage == "" {
 		p.Spec.TargetAllocator.Enabled = false
 	}
 	return p
 }
 
-func testCollectorWithConfigFile(name string, taContainerImage string, file string) (v1beta1.OpenTelemetryCollector, error) {
+func testCollectorWithConfigFile(name, taContainerImage, file string) (v1beta1.OpenTelemetryCollector, error) {
 	replicas := int32(1)
 	var configYAML []byte
 	var err error
@@ -375,7 +377,8 @@ func testCollectorWithConfigFile(name string, taContainerImage string, file stri
 							IntVal: 80,
 						},
 						NodePort: 0,
-					}}},
+					},
+				}},
 				Replicas: &replicas,
 			},
 			Mode: v1beta1.ModeStatefulSet,
@@ -419,7 +422,8 @@ func testCollectorWithHPA(t *testing.T, minReps, maxReps int32) v1beta1.OpenTele
 							IntVal: 80,
 						},
 						NodePort: 0,
-					}}},
+					},
+				}},
 			},
 
 			Config: otelConfig,
@@ -484,7 +488,8 @@ func testCollectorWithPDB(t *testing.T, minAvailable, maxUnavailable int32) v1be
 							IntVal: 80,
 						},
 						NodePort: 0,
-					}}},
+					},
+				}},
 				PodDisruptionBudget: pdb,
 			},
 

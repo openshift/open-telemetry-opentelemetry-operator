@@ -105,7 +105,7 @@ func (s *OpAMPProxy) onDisconnect(conn types.Connection) {
 	defer s.mux.Unlock()
 
 	for instanceId := range s.connections[conn] {
-		if hostName := s.agentsById[instanceId].GetHostname(); len(hostName) > 0 {
+		if hostName := s.agentsById[instanceId].GetHostname(); hostName != "" {
 			delete(s.agentsByHostName, hostName)
 		}
 		delete(s.agentsById, instanceId)
@@ -141,7 +141,7 @@ func (s *OpAMPProxy) onMessage(_ context.Context, conn types.Connection, msg *pr
 		agentUpdated = true
 	}
 	agentUpdated = s.agentsById[instanceId].UpdateStatus(msg, response) || agentUpdated
-	if hostName := s.agentsById[instanceId].GetHostname(); len(hostName) > 0 {
+	if hostName := s.agentsById[instanceId].GetHostname(); hostName != "" {
 		s.agentsByHostName[hostName] = instanceId
 	}
 	s.mux.Unlock()
@@ -191,17 +191,18 @@ func (s *OpAMPProxy) HasUpdates() <-chan struct{} {
 func getInstanceId(msg *protobufs.AgentToServer) (uuid.UUID, error) {
 	var instanceId uuid.UUID
 
-	if len(msg.InstanceUid) == 26 {
+	switch {
+	case len(msg.InstanceUid) == 26:
 		// This is an old-style ULID.
 		u, err := ulid.Parse(string(msg.InstanceUid))
 		if err != nil {
 			return instanceId, err
 		}
 		instanceId = uuid.UUID(u)
-	} else if len(msg.InstanceUid) == 16 {
+	case len(msg.InstanceUid) == 16:
 		// This is a 16 byte, new style UID.
 		instanceId = uuid.UUID(msg.InstanceUid)
-	} else {
+	default:
 		return instanceId, errors.New("invalid length of msg.InstanceUid")
 	}
 	return instanceId, nil

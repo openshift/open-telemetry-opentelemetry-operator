@@ -9,7 +9,8 @@ import (
 	"fmt"
 	"maps"
 	"math"
-	"sort"
+	"slices"
+	"strings"
 
 	"dario.cat/mergo"
 	"github.com/go-logr/logr"
@@ -70,8 +71,10 @@ func (c *AnyConfig) DeepCopy() *AnyConfig {
 	return out
 }
 
-var _ json.Marshaler = &AnyConfig{}
-var _ json.Unmarshaler = &AnyConfig{}
+var (
+	_ json.Marshaler   = &AnyConfig{}
+	_ json.Unmarshaler = &AnyConfig{}
+)
 
 // UnmarshalJSON implements an alternative parser for this field.
 func (c *AnyConfig) UnmarshalJSON(b []byte) error {
@@ -225,8 +228,8 @@ func (c *Config) getPortsForComponentKinds(logger logr.Logger, componentKinds ..
 		}
 	}
 
-	sort.Slice(ports, func(i, j int) bool {
-		return ports[i].Name < ports[j].Name
+	slices.SortFunc(ports, func(i, j corev1.ServicePort) int {
+		return strings.Compare(i.Name, j.Name)
 	})
 
 	return ports, nil
@@ -234,7 +237,7 @@ func (c *Config) getPortsForComponentKinds(logger logr.Logger, componentKinds ..
 
 // getEnvironmentVariablesForComponentKinds gets the environment variables for the given ComponentKind(s).
 func (c *Config) getEnvironmentVariablesForComponentKinds(logger logr.Logger, componentKinds ...ComponentKind) ([]corev1.EnvVar, error) {
-	var envVars = []corev1.EnvVar{}
+	envVars := []corev1.EnvVar{}
 	enabledComponents := c.GetEnabledComponents()
 	for _, componentKind := range componentKinds {
 		var retriever components.ParserRetriever
@@ -257,16 +260,17 @@ func (c *Config) getEnvironmentVariablesForComponentKinds(logger logr.Logger, co
 		}
 	}
 
-	sort.Slice(envVars, func(i, j int) bool {
-		return envVars[i].Name < envVars[j].Name
+	slices.SortFunc(envVars, func(i, j corev1.EnvVar) int {
+		return strings.Compare(i.Name, j.Name)
 	})
 
 	return envVars, nil
 }
 
 // applyDefaultForComponentKinds applies defaults to the endpoints for the given ComponentKind(s).
+// If defaultsCfg.TLSProfile is set, TLS defaults are also applied via the Parser.GetDefaultConfig method.
 // Returns a list of events that should be recorded by the caller.
-func (c *Config) applyDefaultForComponentKinds(logger logr.Logger, componentKinds ...ComponentKind) ([]EventInfo, error) {
+func (c *Config) applyDefaultForComponentKinds(logger logr.Logger, parserOpts []components.DefaultOption, componentKinds ...ComponentKind) ([]EventInfo, error) {
 	events, err := c.Service.ApplyDefaults(logger)
 	if err != nil {
 		return events, err
@@ -280,7 +284,8 @@ func (c *Config) applyDefaultForComponentKinds(logger logr.Logger, componentKind
 			retriever = receivers.ReceiverFor
 			cfg = c.Receivers
 		case KindExporter, KindProcessor:
-			continue
+			retriever = exporters.ParserFor
+			cfg = c.Exporters
 		case KindExtension:
 			if c.Extensions == nil {
 				continue
@@ -291,7 +296,7 @@ func (c *Config) applyDefaultForComponentKinds(logger logr.Logger, componentKind
 		for componentName := range enabledComponents[componentKind] {
 			parser := retriever(componentName)
 			componentConf := cfg.Object[componentName]
-			newCfg, err := parser.GetDefaultConfig(logger, componentConf)
+			newCfg, err := parser.GetDefaultConfig(logger, componentConf, parserOpts...)
 			if err != nil {
 				return events, err
 			}
@@ -347,8 +352,10 @@ func (c *Config) GetAllRbacRules(logger logr.Logger) ([]rbacv1.PolicyRule, error
 	return c.getRbacRulesForComponentKinds(logger, KindReceiver, KindExporter, KindProcessor, KindExtension)
 }
 
-func (c *Config) ApplyDefaults(logger logr.Logger) ([]EventInfo, error) {
-	return c.applyDefaultForComponentKinds(logger, KindReceiver, KindExtension)
+// ApplyDefaults applies default configuration values to the collector config.
+// Optional DefaultsOption arguments can be provided to customize behavior.
+func (c *Config) ApplyDefaults(logger logr.Logger, opts ...components.DefaultOption) ([]EventInfo, error) {
+	return c.applyDefaultForComponentKinds(logger, opts, KindReceiver, KindExporter, KindExtension)
 }
 
 // GetLivenessProbe gets the first enabled liveness probe. There should only ever be one extension enabled
@@ -446,7 +453,7 @@ func (c *Config) nullObjects() []string {
 		}
 	}
 	// Make the return deterministic. The config uses maps therefore processing order is non-deterministic.
-	sort.Strings(nullKeys)
+	slices.Sort(nullKeys)
 	return nullKeys
 }
 

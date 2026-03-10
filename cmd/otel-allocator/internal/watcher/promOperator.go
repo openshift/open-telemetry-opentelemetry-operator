@@ -91,7 +91,6 @@ func NewPrometheusCRWatcher(
 	}
 
 	generator, err := prometheus.NewConfigGenerator(promLogger, prom, prometheus.WithEndpointSliceSupport(), prometheus.WithInlineTLSConfig())
-
 	if err != nil {
 		return nil, err
 	}
@@ -539,6 +538,7 @@ func (w *PrometheusCRWatcher) LoadConfig(ctx context.Context) (*promconfig.Confi
 // https://github.com/prometheus-operator/prometheus-operator/blob/293c16c854ce69d1da9fdc8f0705de2d67bfdbfa/pkg/operator/operator.go#L433
 func (w *PrometheusCRWatcher) WaitForNamedCacheSync(controllerName string, inf cache.InformerSynced) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
 	t := time.NewTicker(time.Second * 5)
 	defer t.Stop()
 

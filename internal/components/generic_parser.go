@@ -12,9 +12,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
-var (
-	_ Parser = &GenericParser[SingleEndpointConfig]{}
-)
+var _ Parser = &GenericParser[SingleEndpointConfig]{}
 
 // GenericParser serves as scaffolding for custom parsing logic by isolating
 // functionality to idempotent functions.
@@ -30,7 +28,7 @@ type GenericParser[T any] struct {
 	defaultsApplier Defaulter[T]
 }
 
-func (g *GenericParser[T]) GetDefaultConfig(logger logr.Logger, config any) (any, error) {
+func (g *GenericParser[T]) GetDefaultConfig(logger logr.Logger, config any, opts ...DefaultOption) (any, error) {
 	if g.settings == nil || g.defaultsApplier == nil {
 		return config, nil
 	}
@@ -39,11 +37,19 @@ func (g *GenericParser[T]) GetDefaultConfig(logger logr.Logger, config any) (any
 		return config, nil
 	}
 
+	// Apply options to build the DefaultConfig
+	defaultCfg := &DefaultConfig{}
+	for _, opt := range opts {
+		if opt != nil {
+			opt(defaultCfg)
+		}
+	}
+
 	var parsed T
 	if err := mapstructure.Decode(config, &parsed); err != nil {
 		return nil, err
 	}
-	return g.defaultsApplier(logger, g.settings.defaultRecAddr, g.settings.port, parsed)
+	return g.defaultsApplier(logger, defaultCfg, g.settings.defaultRecAddr, g.settings.port, parsed)
 }
 
 func (g *GenericParser[T]) GetLivenessProbe(logger logr.Logger, config any) (*corev1.Probe, error) {

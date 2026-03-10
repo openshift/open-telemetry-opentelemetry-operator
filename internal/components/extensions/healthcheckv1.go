@@ -25,7 +25,7 @@ type healthcheckV1Config struct {
 	Path                            string `mapstructure:"path"`
 }
 
-func healthCheckV1AddressDefaulter(_ logr.Logger, defaultRecAddr string, port int32, config healthcheckV1Config) (map[string]any, error) {
+func healthCheckV1AddressDefaulter(_ logr.Logger, _ *components.DefaultConfig, defaultRecAddr string, port int32, config healthcheckV1Config) (map[string]any, error) {
 	if config.Endpoint == "" {
 		config.Endpoint = fmt.Sprintf("%s:%d", defaultRecAddr, port)
 	} else {
@@ -51,7 +51,7 @@ func healthCheckV1Probe(logger logr.Logger, config healthcheckV1Config) (*corev1
 	// but since the function runs only when manifests are deployed,
 	// we must keep these runtime defaults for backward compatibility.
 	path := config.Path
-	if len(path) == 0 {
+	if path == "" {
 		path = defaultHealthcheckV1Path
 	}
 	return &corev1.Probe{
