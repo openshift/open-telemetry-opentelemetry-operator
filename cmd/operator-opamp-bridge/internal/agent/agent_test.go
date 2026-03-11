@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -92,7 +92,8 @@ var (
 					Phase:     v1.PodRunning,
 				},
 			},
-		}}
+		},
+	}
 	mockPodListUnhealthy = &v1.PodList{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "PodList",
@@ -117,7 +118,8 @@ var (
 					Phase:     v1.PodRunning,
 				},
 			},
-		}}
+		},
+	}
 )
 
 func getConfigHash(key, file string) string {
@@ -130,8 +132,10 @@ func getConfigHash(key, file string) string {
 	return fmt.Sprintf("%s%d", key, size)
 }
 
-var _ client.OpAMPClient = &mockOpampClient{}
-var _ proxy.Server = newMockProxy(nil, nil, nil)
+var (
+	_ client.OpAMPClient = &mockOpampClient{}
+	_ proxy.Server       = newMockProxy(nil, nil, nil)
+)
 
 func newMockProxy(configs map[uuid.UUID]*protobufs.EffectiveConfig, healths map[uuid.UUID]*protobufs.ComponentHealth, agentsByHostname map[string]uuid.UUID) *mockProxy {
 	return &mockProxy{
@@ -1169,7 +1173,7 @@ func getMessageDataFromConfigFile(filemap map[string]string) (*types.MessageData
 		i++
 	}
 	// We sort the filenames so we get consistent results for multiple file loads
-	sort.Strings(fileNames)
+	slices.Sort(fileNames)
 
 	for _, key := range fileNames {
 		yamlFile, err := os.ReadFile(filemap[key])

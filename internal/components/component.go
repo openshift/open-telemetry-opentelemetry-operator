@@ -42,9 +42,27 @@ type ProbeGenerator[ComponentConfigType any] func(logger logr.Logger, config Com
 // It's expected that type Config is the configuration used by a parser.
 type EnvVarGenerator[ComponentConfigType any] func(logger logr.Logger, config ComponentConfigType) ([]corev1.EnvVar, error)
 
+// DefaultConfig holds configuration options for applying defaults to components.
+type DefaultConfig struct {
+	// TLSProfile provides TLS settings to inject into components with tls: blocks.
+	TLSProfile TLSProfile
+}
+
+// DefaultOption is a functional option for configuring defaults behavior.
+type DefaultOption func(*DefaultConfig)
+
+// WithTLSProfile sets the TLS profile to use when applying defaults.
+// When set, TLS settings (min_version, cipher_suites) are injected into
+// components that have a tls: block with cert_file configured.
+func WithTLSProfile(tls TLSProfile) DefaultOption {
+	return func(cfg *DefaultConfig) {
+		cfg.TLSProfile = tls
+	}
+}
+
 // Defaulter is a function that applies given defaults to the passed Config.
 // It's expected that type Config is the configuration used by a parser.
-type Defaulter[ComponentConfigType any] func(logger logr.Logger, defaultAddr string, defaultPort int32, config ComponentConfigType) (map[string]any, error)
+type Defaulter[ComponentConfigType any] func(logger logr.Logger, defaultCfg *DefaultConfig, defaultAddr string, defaultPort int32, config ComponentConfigType) (map[string]any, error)
 
 // ComponentType returns the type for a given component name.
 // components have a name like:
@@ -52,8 +70,9 @@ type Defaulter[ComponentConfigType any] func(logger logr.Logger, defaultAddr str
 // - mycomponent
 // we extract the "mycomponent" part and see if we have a parser for the component.
 func ComponentType(name string) string {
-	if strings.Contains(name, "/") {
-		return name[:strings.Index(name, "/")]
+	before, _, ok := strings.Cut(name, "/")
+	if ok {
+		return before
 	}
 	return name
 }
@@ -68,7 +87,6 @@ func PortFromEndpoint(endpoint string) (int32, error) {
 		portStr := r.FindString(endpoint)
 		cleanedPortStr := strings.ReplaceAll(portStr, ":", "")
 		port, err = strconv.ParseInt(cleanedPortStr, 10, 32)
-
 		if err != nil {
 			return UnsetPort, err
 		}
@@ -85,8 +103,9 @@ type ParserRetriever func(string) Parser
 
 type Parser interface {
 	// GetDefaultConfig returns a config with set default values.
+	// Optional DefaultOption arguments can customize behavior (e.g., WithTLSProfile for TLS defaults).
 	// NOTE: Config merging must be done by the caller if desired.
-	GetDefaultConfig(logger logr.Logger, config any) (any, error)
+	GetDefaultConfig(logger logr.Logger, config any, opts ...DefaultOption) (any, error)
 
 	// Ports returns the service ports parsed based on the component's configuration where name is the component's name
 	// of the form "name" or "type/name"

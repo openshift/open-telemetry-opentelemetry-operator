@@ -7,7 +7,7 @@ package controllers
 import (
 	"context"
 	"maps"
-	"sort"
+	"slices"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -48,12 +48,10 @@ import (
 
 const resourceOwnerKey = ".metadata.owner"
 
-var (
-	ownedClusterObjectTypes = []client.Object{
-		&rbacv1.ClusterRole{},
-		&rbacv1.ClusterRoleBinding{},
-	}
-)
+var ownedClusterObjectTypes = []client.Object{
+	&rbacv1.ClusterRole{},
+	&rbacv1.ClusterRoleBinding{},
+}
 
 // OpenTelemetryCollectorReconciler reconciles a OpenTelemetryCollector object.
 type OpenTelemetryCollectorReconciler struct {
@@ -137,11 +135,17 @@ func (r *OpenTelemetryCollectorReconciler) findClusterRoleObjects(ctx context.Co
 // Fundamentally, this just sorts by time created and picks configVersionsToKeep latest ones.
 func getCollectorConfigMapsToKeep(configVersionsToKeep int, configMaps []*corev1.ConfigMap) []*corev1.ConfigMap {
 	configVersionsToKeep = max(1, configVersionsToKeep)
-	sort.Slice(configMaps, func(i, j int) bool {
-		iTime := configMaps[i].GetCreationTimestamp().Time
-		jTime := configMaps[j].GetCreationTimestamp().Time
+	slices.SortFunc(configMaps, func(i, j *corev1.ConfigMap) int {
+		iTime := i.GetCreationTimestamp().Time
+		jTime := j.GetCreationTimestamp().Time
 		// sort the ConfigMaps newest to oldest
-		return iTime.After(jTime)
+		if jTime.Before(iTime) {
+			return -1
+		}
+		if jTime.After(iTime) {
+			return 1
+		}
+		return 0
 	})
 
 	configMapsToKeep := min(configVersionsToKeep, len(configMaps))
@@ -247,7 +251,7 @@ func (r *OpenTelemetryCollectorReconciler) Reconcile(ctx context.Context, req ct
 
 	// We have a deletion, short circuit and let the deletion happen
 	// Remove finalizer if RBAC permission not available
-	deletionTimestamp, err := removeFinalizer(r, ctx, params, &instance)
+	deletionTimestamp, err := removeFinalizer(ctx, r, params, &instance)
 	if err != nil || deletionTimestamp != nil {
 		return ctrl.Result{}, err
 	}
@@ -384,7 +388,7 @@ func maybeAddFinalizer(params manifests.Params, instance *v1beta1.OpenTelemetryC
 	return false
 }
 
-func removeFinalizer(r *OpenTelemetryCollectorReconciler, ctx context.Context, params manifests.Params, instance *v1beta1.OpenTelemetryCollector) (*metav1.Time, error) {
+func removeFinalizer(ctx context.Context, r *OpenTelemetryCollectorReconciler, params manifests.Params, instance *v1beta1.OpenTelemetryCollector) (*metav1.Time, error) {
 	deletionTimestamp := instance.GetDeletionTimestamp()
 	if deletionTimestamp != nil || params.Config.CreateRBACPermissions != rbac.Available {
 		if controllerutil.ContainsFinalizer(instance, collectorFinalizer) {

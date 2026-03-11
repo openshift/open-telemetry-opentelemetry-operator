@@ -6,7 +6,7 @@ package instrumentation
 import (
 	"fmt"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -63,7 +63,8 @@ func injectNginxSDK(_ logr.Logger, nginxSpec v1alpha1.Nginx, pod corev1.Pod, use
 			Name: nginxAgentConfigVolume,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
-			}})
+			},
+		})
 
 		nginxConfFile := getNginxConfFile(nginxSpec.ConfigFile)
 		nginxConfDir := getNginxConfDir(nginxSpec.ConfigFile)
@@ -73,8 +74,7 @@ func injectNginxSDK(_ logr.Logger, nginxSpec v1alpha1.Nginx, pod corev1.Pod, use
 		// 2) version of Nginx to select the proper version of OTel modules.
 		//    - run Nginx with -v to get the version
 		//    - store the version into a file where instrumentation initContainer can pick it up
-		nginxCloneScriptTemplate :=
-			`
+		nginxCloneScriptTemplate := `
 cp -r %[2]s/* %[3]s &&
 export %[4]s="$( { nginx -v ; } 2>&1 )" && echo ${%[4]s##*/} > %[3]s/version.txt
 `
@@ -138,7 +138,8 @@ export %[4]s="$( { nginx -v ; } 2>&1 )" && echo ${%[4]s##*/} > %[3]s/version.txt
 			Name: nginxAgentVolume,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
-			}})
+			},
+		})
 
 		// Following is the template for a shell script, which does the actual instrumentation
 		// It does following:
@@ -154,8 +155,7 @@ export %[4]s="$( { nginx -v ; } 2>&1 )" && echo ${%[4]s##*/} > %[3]s/version.txt
 		// 9) Move OTel module configuration file to Nginx configuration directory.
 
 		// Each line of the script MUST end with \n !
-		nginxAgentI13nScript :=
-			`
+		nginxAgentI13nScript := `
 NGINX_AGENT_DIR_FULL=$1	\n
 NGINX_AGENT_CONF_DIR_FULL=$2 \n
 NGINX_CONFIG_FILE=$3 \n
@@ -262,9 +262,9 @@ func getNginxOtelConfig(pod corev1.Pod, useLabelsForResourceAttributes bool, ngi
 	}
 	serviceName := chooseServiceName(pod, useLabelsForResourceAttributes, resourceMap, container)
 	serviceNamespace := pod.GetNamespace()
-	if len(serviceNamespace) == 0 {
+	if serviceNamespace == "" {
 		serviceNamespace = resourceMap[string(semconv.K8SNamespaceNameKey)]
-		if len(serviceNamespace) == 0 {
+		if serviceNamespace == "" {
 			serviceNamespace = "nginx"
 		}
 	}
@@ -291,7 +291,7 @@ func getNginxOtelConfig(pod corev1.Pod, useLabelsForResourceAttributes bool, ngi
 	for key := range attrMap {
 		keys = append(keys, key)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 
 	for _, key := range keys {
 		fmt.Fprintf(&configFileContent, "%s %s;\n", key, attrMap[key])

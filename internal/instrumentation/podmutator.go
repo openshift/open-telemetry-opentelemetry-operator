@@ -144,7 +144,7 @@ func (langInsts *languageInstrumentations) setCommonInstrumentedContainers(ns co
 	return nil
 }
 
-func (langInsts *languageInstrumentations) setLanguageSpecificContainers(ns metav1.ObjectMeta, pod metav1.ObjectMeta) error {
+func (langInsts *languageInstrumentations) setLanguageSpecificContainers(ns, pod metav1.ObjectMeta) error {
 	inst := []struct {
 		iwc        *instrumentationWithContainers
 		annotation string
@@ -361,7 +361,7 @@ func (pm *instPodMutator) Mutate(ctx context.Context, ns corev1.Namespace, pod c
 func (pm *instPodMutator) getInstrumentationInstance(ctx context.Context, ns corev1.Namespace, pod corev1.Pod, instAnnotation string) (*v1alpha1.Instrumentation, error) {
 	instValue := annotationValue(ns.ObjectMeta, pod.ObjectMeta, instAnnotation)
 
-	if len(instValue) == 0 || strings.EqualFold(instValue, "false") {
+	if instValue == "" || strings.EqualFold(instValue, "false") {
 		return nil, nil
 	}
 
