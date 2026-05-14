@@ -335,6 +335,18 @@ deploy: install-gateway-api-crds set-image-controller
 undeploy: set-image-controller
 	$(KUSTOMIZE) build config/default | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
 
+##@ Deploy without CRDs
+# Deploy controller in the current Kubernetes context, configured in ~/.kube/config
+.PHONY: deploy-no-crds
+deploy-no-crds: set-image-controller
+	$(KUSTOMIZE) build config/no-crds | INSTRUMENTATION_JAVA_IMG=$(INSTRUMENTATION_JAVA_IMG) envsubst | kubectl apply -f -
+	kubectl rollout status deployment/opentelemetry-operator-controller-manager -n opentelemetry-operator-system --timeout=300s
+
+# Undeploy controller in the current Kubernetes context, configured in ~/.kube/config
+.PHONY: undeploy-no-crds
+undeploy-no-crds: set-image-controller
+	$(KUSTOMIZE) build config/no-crds | kubectl delete --ignore-not-found=$(ignore-not-found) -f -
+
 # Generates the released manifests
 .PHONY: release-artifacts
 release-artifacts: set-image-controller
@@ -408,6 +420,11 @@ e2e-instrumentation-default: e2e-instrumentation
 .PHONY: e2e-instrumentation
 e2e-instrumentation: chainsaw
 	$(CHAINSAW) test --test-dir ./tests/e2e-instrumentation --report-name e2e-instrumentation
+
+# no-crds end-to-tests
+.PHONY: e2e-no-crds
+e2e-no-crds: chainsaw
+	$(CHAINSAW) test --test-dir ./tests/e2e-no-crds --report-name e2e-no-crds
 
 # Log operator pod information for debugging
 .PHONY: e2e-log-operator
@@ -498,6 +515,10 @@ e2e-ta-standalone: kustomize gotestsum
 # Prepare environment for e2e tests
 .PHONY: prepare-e2e
 prepare-e2e: chainsaw set-image-controller add-image-targetallocator add-image-opampbridge start-kind cert-manager install-metrics-server install-gateway-api-crds install-targetallocator-prometheus-crds load-image-all deploy
+	@mkdir -p ./.testresults/e2e
+
+.PHONY: prepare-e2e-no-crds
+prepare-e2e-no-crds: chainsaw set-image-controller add-image-targetallocator add-image-opampbridge start-kind cert-manager install-metrics-server install-targetallocator-prometheus-crds load-image-all deploy-no-crds
 	@mkdir -p ./.testresults/e2e
 
 # Run operator-sdk scorecard tests for bundles
@@ -967,6 +988,38 @@ catalog-build: opm bundle-build bundle-push ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	docker push $(CATALOG_IMG)
+
+##@ Supply Chain Security
+
+# Tool versions for supply chain securitya
+# renovate: datasource=github-releases depName=sigstore/cosign
+COSIGN_VERSION ?= v2.5.0
+COSIGN ?= $(LOCALBIN)/cosign
+
+
+# Download cosign locally if necessary
+.PHONY: cosign
+cosign: $(LOCALBIN)
+	@{ \
+	set -e ;\
+	if [ -x "$(COSIGN)" ] && "$(COSIGN)" version 2>/dev/null | grep -q "$(COSIGN_VERSION)"; then exit 0; fi ;\
+	OS=$(shell go env GOOS) && ARCH=$(shell go env GOARCH) ;\
+	curl -sSfL "https://github.com/sigstore/cosign/releases/download/$(COSIGN_VERSION)/cosign-$${OS}-$${ARCH}" -o "$(COSIGN)" ;\
+	chmod +x "$(COSIGN)" ;\
+	}
+
+# Sign container images with keyless cosign.
+# Usage: make cosign-sign IMAGE=ghcr.io/... DIGEST=sha256:...
+# Both IMAGE and DIGEST must be set.
+.PHONY: cosign-sign
+cosign-sign: cosign
+ifndef IMAGE
+	$(error IMAGE is not set. Usage: make cosign-sign IMAGE=<image> DIGEST=<digest>)
+endif
+ifndef DIGEST
+	$(error DIGEST is not set. Usage: make cosign-sign IMAGE=<image> DIGEST=<digest>)
+endif
+	$(COSIGN) sign --yes "$(IMAGE)@$(DIGEST)"
 
 ##@ Release
 
