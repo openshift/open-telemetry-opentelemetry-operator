@@ -28,7 +28,6 @@ data:
             endpoint: 0.0.0.0:9090
     receivers:
         prometheus:
-            config: {}
             target_allocator:
                 collector_id: ${POD_NAME}
                 endpoint: http://prometheus-cr-targetallocator:80
@@ -48,9 +47,6 @@ data:
                               prometheus:
                                   host: 0.0.0.0
                                   port: 8888
-                                  without_scope_info: false
-                                  without_type_suffix: false
-                                  without_units: false
 kind: ConfigMap
 metadata:
   labels:
