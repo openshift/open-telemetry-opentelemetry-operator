@@ -386,10 +386,26 @@ release-artifacts: set-image-controller
 manifests: controller-gen
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." paths="./apis/..." output:crd:artifacts:config=${MANIFEST_DIR}
 
-# Run tests
+# Run tests, including the in-process target allocator integration tests (they need
+# no cluster or network, so they run unconditionally here).
 .PHONY: test
 test: gotestsum
 	$(GOTESTSUM) -- ${GOTEST_OPTS} ./...
+	$(MAKE) ta-integration-test
+
+# Regenerate the conformance goldens from raw Prometheus (promtool).
+# Run this after adding/changing fixtures or bumping the prometheus dependency.
+.PHONY: ta-conformance-regen
+ta-conformance-regen: promtool
+	PROMTOOL=$(PROMTOOL) go test -count=1 ./cmd/otel-allocator/internal/conformance/... -update
+
+# Run only the in-process target allocator + prometheus receiver integration tests.
+# They live in a separate Go module so the collector/receiver dependency graph stays
+# out of the target allocator binary, but they are in-process (no cluster/network) and
+# `make test` runs them too; this target is for iterating on them in isolation.
+.PHONY: ta-integration-test
+ta-integration-test: gotestsum
+	cd cmd/otel-allocator/integrationtest && $(GOTESTSUM) -- ${GOTEST_OPTS} ./...
 
 # Run precommit checks (format, vet, lint, test, validation)
 .PHONY: precommit
@@ -793,7 +809,13 @@ CHAINSAW_VERSION ?= v0.2.15
 # renovate: datasource=go depName=gotest.tools/gotestsum
 GOTESTSUM_VERSION ?= v1.13.0
 # renovate: datasource=go depName=golang.org/x/vuln/cmd/govulncheck
-GOVULNCHECK_VERSION ?= v1.4.0
+GOVULNCHECK_VERSION ?= v1.5.0
+PROMTOOL ?= $(LOCALBIN)/promtool
+# promtool is the golden source for the target-allocator conformance suite. It must match
+# the prometheus/prometheus library the operator links against, so derive the release version
+# straight from go.mod. The library is tagged v0.<major><minor>.<patch> (e.g. v0.312.0 ==
+# Prometheus 3.12.0), hence the awk arithmetic below.
+PROMTOOL_VERSION ?= $(shell awk '$$1=="github.com/prometheus/prometheus"{split($$2,v,".");printf "%d.%d.%d",int(v[2]/100),v[2]%100,v[3]}' go.mod)
 
 # Install all development tools
 .PHONY: install-tools
@@ -839,6 +861,24 @@ gotestsum: ## Find or download gotestsum
 .PHONY: govulncheck
 govulncheck: ## Download govulncheck locally if necessary.
 	$(call go-install-tool,$(GOVULNCHECK),golang.org/x/vuln/cmd/govulncheck,$(GOVULNCHECK_VERSION))
+
+# Download promtool locally if necessary (conformance suite golden source; can't be go-installed
+# because prometheus/prometheus uses replace directives, so pull the release binary).
+.PHONY: promtool
+promtool: ## Download promtool locally if necessary.
+	@{ \
+	set -e ;\
+	if ($(PROMTOOL) --version 2>&1 | grep $(PROMTOOL_VERSION)) > /dev/null 2>&1 ; then \
+		exit 0; \
+	fi ;\
+	TMP_DIR=$$(mktemp -d) ;\
+	curl -fSL --retry 5 --retry-delay 2 --retry-all-errors -o $$TMP_DIR/prometheus.tar.gz https://github.com/prometheus/prometheus/releases/download/v$(PROMTOOL_VERSION)/prometheus-$(PROMTOOL_VERSION).`go env GOOS`-`go env GOARCH`.tar.gz ;\
+	gzip -t $$TMP_DIR/prometheus.tar.gz || { echo "ERROR: downloaded prometheus archive is corrupt or incomplete" >&2; exit 1; } ;\
+	tar xzf $$TMP_DIR/prometheus.tar.gz -C $$TMP_DIR --strip-components=1 --wildcards '*/promtool' ;\
+	[ -d $(LOCALBIN) ] || mkdir -p $(LOCALBIN) ;\
+	mv $$TMP_DIR/promtool $(PROMTOOL) ;\
+	rm -rf $$TMP_DIR ;\
+	}
 
 # Run govulncheck with the project's CVE exception list
 .PHONY: govulncheck-run
