@@ -4,8 +4,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GO111MODULE=on go build -o bridge-server main.go
+RUN CGO_ENABLED=0 GOOS=linux GO111MODULE=on go build -o otlp-sink main.go
 
 FROM scratch
-COPY --from=builder /app/bridge-server .
-ENTRYPOINT ["./bridge-server"]
+COPY --from=builder /app/otlp-sink .
+ENTRYPOINT ["./otlp-sink"]
