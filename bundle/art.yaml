@@ -2,9 +2,32 @@
 updates:
 # Patch annotations to use the product package name and stable channel.
 # These are relative to this file's directory (bundle/).
-- file: "openshift/metadata/annotations.yaml"
+- file: openshift/metadata/annotations.yaml
   update_list:
-  - search: "operators.operatorframework.io.bundle.package.v1: opentelemetry-operator"
-    replace: "operators.operatorframework.io.bundle.package.v1: opentelemetry-product"
-  - search: "operators.operatorframework.io.bundle.channels.v1: alpha"
-    replace: "operators.operatorframework.io.bundle.channels.v1: stable"
+  - search: 'operators.operatorframework.io.bundle.package.v1: opentelemetry-operator'
+    replace: 'operators.operatorframework.io.bundle.package.v1: opentelemetry-product'
+  - search: 'operators.operatorframework.io.bundle.channels.v1: alpha'
+    replace: 'operators.operatorframework.io.bundle.channels.v1: stable'
+# Downstream CSV customisations: metadata.annotations that doozer does NOT
+# auto-add, plus spec.description, spec.displayName, spec.provider,
+# spec.maintainers.
+# NOTE: operators.openshift.io/valid-subscription and spec.relatedImages are
+# auto-injected by doozer and must NOT be duplicated here.
+# TODO: Operand (collector/target-allocator) RELATED_IMAGE env-var injection is
+# pending ART-ist confirmation of the ocp-build-data name_in_bundle /
+# image-references substitution mechanism. Once confirmed, add the appropriate
+# entries to ocp-build-data rather than hardcoding pullspecs here.
+- file: openshift/manifests/opentelemetry-operator.clusterserviceversion.yaml
+  update_list:
+  - search: 'support: OpenTelemetry Community'
+    replace: "support: Red Hat\n    operators.openshift.io/infrastructure-features: '[\"disconnected\"]'\n    operatorframework.io/cluster-monitoring: \"true\"\n    operatorframework.io/suggested-namespace: openshift-opentelemetry-operator\n    features.operators.openshift.io/disconnected: \"true\"\n    features.operators.openshift.io/fips-compliant: \"true\"\n    features.operators.openshift.io/proxy-aware: \"true\"\n    features.operators.openshift.io/tls-profiles: \"false\"\n    features.operators.openshift.io/token-auth-aws: \"false\"\n    features.operators.openshift.io/token-auth-azure: \"false\"\n    features.operators.openshift.io/token-auth-gcp: \"false\"\n    features.operators.openshift.io/cnf: \"false\"\n    features.operators.openshift.io/cni: \"false\"\n    features.operators.openshift.io/csi: \"false\"\n    console.openshift.io/operator-monitoring-default: \"true\"\n    olm.skipRange: '>=0.33.0 <0.158.0-1'"
+  - search: OpenTelemetry is a collection of tools, APIs, and SDKs. You use it to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.
+    replace: "Red Hat build of OpenTelemetry is a collection of tools, APIs, and SDKs. You use it to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.\n    This operator was previously called Red Hat OpenShift distributed tracing data collection."
+  - search: '  displayName: Community OpenTelemetry Operator'
+    replace: "\n    ## Examples\n\n    There is a list of examples to help you deploy different configurations in [this GitHub repository](https://github.com/os-observability/redhat-rhosdt-samples)\n\n    ### Support & Troubleshooting\n\n    Red Hat build of OpenTelemetry is available as part of a Red Hat OpenShift subscription.\n    Checking the [Red Hat Documentation](https://docs.redhat.com/en/documentation/red_hat_build_of_opentelemetry) is recommended when installing, configuring, and managing the Operator and instances.\n  displayName: 'Red Hat build of OpenTelemetry'"
+  - search: 'email: jpkroehling@redhat.com'
+    replace: 'email: support@redhat.com'
+  - search: 'name: Juraci Paixão Kröhling'
+    replace: 'name: Red Hat support'
+  - search: 'name: OpenTelemetry Community'
+    replace: 'name: ''Red Hat'''
