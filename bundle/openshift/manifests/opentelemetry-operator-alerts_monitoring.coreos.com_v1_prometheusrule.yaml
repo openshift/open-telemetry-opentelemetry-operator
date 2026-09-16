@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    name: opentelemetry-operator
+  name: opentelemetry-operator-alerts
+spec:
+  groups:
+  - name: opentelemetry_operator.alerts
+    rules:
+    - alert: GoogleCloudExporterDeprecationWarning
+      annotations:
+        message: Google Cloud Exporter is deprecated and it will be removed from the
+          collector in the 3.12 release.
+        summary: Google Cloud Exporter is deprecated and it will be removed from the
+          Red Hat build of OpenTelemetry collector in the 3.12 release.
+      expr: |
+        last_over_time((max by(version) (csv_succeeded{name=~"opentelemetry-operator.*"}))[5m:]) > 0
+      for: 1m
+      labels:
+        severity: warning

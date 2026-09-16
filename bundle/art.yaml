@@ -1,0 +1,10 @@
+---
+updates:
+# Patch annotations to use the product package name and stable channel.
+# These are relative to this file's directory (bundle/).
+- file: "openshift/metadata/annotations.yaml"
+  update_list:
+  - search: "operators.operatorframework.io.bundle.package.v1: opentelemetry-operator"
+    replace: "operators.operatorframework.io.bundle.package.v1: opentelemetry-product"
+  - search: "operators.operatorframework.io.bundle.channels.v1: alpha"
+    replace: "operators.operatorframework.io.bundle.channels.v1: stable"
