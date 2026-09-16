@@ -97,38 +97,15 @@ metadata:
       ]
     capabilities: Deep Insights
     categories: Logging & Tracing,Monitoring,Observability
-    certified: 'false'
-    console.openshift.io/operator-monitoring-default: 'true'
-    containerImage: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.158.0
-    createdAt: '2026-08-14T14:48:33Z'
+    certified: "false"
+    containerImage: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator
+    createdAt: "2026-08-14T14:48:33Z"
     description: Provides the OpenTelemetry components, including the Collector
-    features.operators.openshift.io/cnf: 'false'
-    features.operators.openshift.io/cni: 'false'
-    features.operators.openshift.io/csi: 'false'
-    features.operators.openshift.io/disconnected: 'true'
-    features.operators.openshift.io/fips-compliant: 'true'
-    features.operators.openshift.io/proxy-aware: 'true'
-    features.operators.openshift.io/tls-profiles: 'false'
-    features.operators.openshift.io/token-auth-aws: 'false'
-    features.operators.openshift.io/token-auth-azure: 'false'
-    features.operators.openshift.io/token-auth-gcp: 'false'
-    olm.skipRange: '>=0.33.0 <0.158.1'
-    operatorframework.io/cluster-monitoring: 'true'
-    operatorframework.io/suggested-namespace: openshift-opentelemetry-operator
-    operators.openshift.io/infrastructure-features: '["disconnected"]'
-    operators.openshift.io/valid-subscription: '["OpenShift Container Platform", "OpenShift
-      Platform Plus"]'
     operators.operatorframework.io/builder: operator-sdk-v1.29.0
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: github.com/open-telemetry/opentelemetry-operator
-    support: Red Hat
-  labels:
-    operatorframework.io/arch.amd64: supported
-    operatorframework.io/arch.arm64: supported
-    operatorframework.io/arch.ppc64le: supported
-    operatorframework.io/arch.s390x: supported
-    operatorframework.io/os.linux: supported
-  name: opentelemetry-operator.v0.158.1
+    support: OpenTelemetry Community
+  name: opentelemetry-operator.v0.158.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -303,8 +280,7 @@ spec:
         path: observability.metrics.enableMetrics
       version: v1alpha1
   description: |-
-    Red Hat build of OpenTelemetry is a collection of tools, APIs, and SDKs. You use it to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.
-    This operator was previously called Red Hat OpenShift distributed tracing data collection.
+    OpenTelemetry is a collection of tools, APIs, and SDKs. You use it to instrument, generate, collect, and export telemetry data (metrics, logs, and traces) for analysis in order to understand your software's performance and behavior.
 
     ### Operator features
 
@@ -312,16 +288,7 @@ spec:
     * **Managed upgrades** - updating the operator will automatically update your OpenTelemetry collectors.
     * **Deployment modes** - your collector can be deployed as sidecar, daemon set, or regular deployment.
     * **Service port management** - the operator detects which ports need to be exposed based on the provided configuration.
-
-    ## Examples
-
-    There is a list of examples to help you deploy different configurations in [this GitHub repository](https://github.com/os-observability/redhat-rhosdt-samples)
-
-    ### Support & Troubleshooting
-
-    Red Hat build of OpenTelemetry is available as part of a Red Hat OpenShift subscription.
-    Checking the [Red Hat Documentation](https://docs.redhat.com/en/documentation/red_hat_build_of_opentelemetry) is recommended when installing, configuring, and managing the Operator and instances.
-  displayName: Red Hat build of OpenTelemetry
+  displayName: Community OpenTelemetry Operator
   icon:
   - base64data: PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHJvbGU9ImltZyIgdmlld0JveD0iLTEyLjcwIC0xMi43MCAxMDI0LjQwIDEwMjQuNDAiPjxzdHlsZT5zdmcge2VuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTAwMCAxMDAwfTwvc3R5bGU+PHBhdGggZmlsbD0iI2Y1YTgwMCIgZD0iTTUyOC43IDU0NS45Yy00MiA0Mi00MiAxMTAuMSAwIDE1Mi4xczExMC4xIDQyIDE1Mi4xIDAgNDItMTEwLjEgMC0xNTIuMS0xMTAuMS00Mi0xNTIuMSAwem0xMTMuNyAxMTMuOGMtMjAuOCAyMC44LTU0LjUgMjAuOC03NS4zIDAtMjAuOC0yMC44LTIwLjgtNTQuNSAwLTc1LjMgMjAuOC0yMC44IDU0LjUtMjAuOCA3NS4zIDAgMjAuOCAyMC43IDIwLjggNTQuNSAwIDc1LjN6bTM2LjYtNjQzbC02NS45IDY1LjljLTEyLjkgMTIuOS0xMi45IDM0LjEgMCA0N2wyNTcuMyAyNTcuM2MxMi45IDEyLjkgMzQuMSAxMi45IDQ3IDBsNjUuOS02NS45YzEyLjktMTIuOSAxMi45LTM0LjEgMC00N0w3MjUuOSAxNi43Yy0xMi45LTEyLjktMzQtMTIuOS00Ni45IDB6TTIxNy4zIDg1OC44YzExLjctMTEuNyAxMS43LTMwLjggMC00Mi41bC0zMy41LTMzLjVjLTExLjctMTEuNy0zMC44LTExLjctNDIuNSAwTDcyLjEgODUybC0uMS4xLTE5LTE5Yy0xMC41LTEwLjUtMjcuNi0xMC41LTM4IDAtMTAuNSAxMC41LTEwLjUgMjcuNiAwIDM4bDExNCAxMTRjMTAuNSAxMC41IDI3LjYgMTAuNSAzOCAwczEwLjUtMjcuNiAwLTM4bC0xOS0xOSAuMS0uMSA2OS4yLTY5LjJ6Ii8+PHBhdGggZmlsbD0iIzQyNWNjNyIgZD0iTTU2NS45IDIwNS45TDQxOS41IDM1Mi4zYy0xMyAxMy0xMyAzNC40IDAgNDcuNGw5MC40IDkwLjRjNjMuOS00NiAxNTMuNS00MC4zIDIxMSAxNy4ybDczLjItNzMuMmMxMy0xMyAxMy0zNC40IDAtNDcuNEw2MTMuMyAyMDUuOWMtMTMtMTMuMS0zNC40LTEzLjEtNDcuNCAwem0tOTQgMzIyLjNsLTUzLjQtNTMuNGMtMTIuNS0xMi41LTMzLTEyLjUtNDUuNSAwTDE4NC43IDY2My4yYy0xMi41IDEyLjUtMTIuNSAzMyAwIDQ1LjVsMTA2LjcgMTA2LjdjMTIuNSAxMi41IDMzIDEyLjUgNDUuNSAwTDQ1OCA2OTQuMWMtMjUuNi01Mi45LTIxLTExNi44IDEzLjktMTY1Ljl6Ii8+PC9zdmc+
     mediatype: image/svg+xml
@@ -601,7 +568,6 @@ spec:
               - args:
                 - --zap-log-level=info
                 - --zap-time-encoding=rfc3339nano
-                - --fips-disabled-components=extension.oidc
                 env:
                 - name: SERVICE_ACCOUNT_NAME
                   valueFrom:
@@ -614,35 +580,31 @@ spec:
                 - name: METRICS_ADDR
                   value: :8443
                 - name: METRICS_SECURE
-                  value: 'true'
+                  value: "true"
                 - name: ENABLE_LEADER_ELECTION
-                  value: 'true'
+                  value: "true"
                 - name: ENABLE_NGINX_AUTO_INSTRUMENTATION
-                  value: 'true'
+                  value: "true"
                 - name: METRICS_TLS_CERT_FILE
                   value: /var/run/tls/server/tls.crt
                 - name: METRICS_TLS_KEY_FILE
                   value: /var/run/tls/server/tls.key
                 - name: ENABLE_WEBHOOKS
-                  value: 'false'
+                  value: "false"
                 - name: ENABLE_GO_AUTO_INSTRUMENTATION
-                  value: 'true'
+                  value: "true"
                 - name: OPENSHIFT_CREATE_DASHBOARD
-                  value: 'true'
+                  value: "true"
                 - name: ENABLE_CR_METRICS
-                  value: 'true'
+                  value: "true"
                 - name: CREATE_SM_OPERATOR_METRICS
-                  value: 'true'
+                  value: "true"
                 - name: FEATURE_GATES
                   value: operator.networkpolicy,operand.networkpolicy
                 - name: TLS_CLUSTER_PROFILE
-                  value: 'true'
+                  value: "true"
                 - name: TLS_CONFIGURE_OPERANDS
-                  value: 'true'
-                - name: RELATED_IMAGE_COLLECTOR
-                  value: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.158.0
-                - name: RELATED_IMAGE_TARGET_ALLOCATOR
-                  value: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:0.158.0
+                  value: "true"
                 image: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.158.0
                 livenessProbe:
                   httpGet:
@@ -713,15 +675,11 @@ spec:
                 - --zap-time-encoding=rfc3339nano
                 env:
                 - name: ENABLE_NGINX_AUTO_INSTRUMENTATION
-                  value: 'true'
+                  value: "true"
                 - name: ENABLE_GO_AUTO_INSTRUMENTATION
-                  value: 'true'
+                  value: "true"
                 - name: FEATURE_GATES
                   value: operand.networkpolicy
-                - name: RELATED_IMAGE_COLLECTOR
-                  value: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.158.0
-                - name: RELATED_IMAGE_TARGET_ALLOCATOR
-                  value: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:0.158.0
                 image: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.158.0
                 livenessProbe:
                   httpGet:
@@ -797,21 +755,13 @@ spec:
   - name: OpenTelemetry Operator
     url: https://github.com/open-telemetry/opentelemetry-operator
   maintainers:
-  - email: support@redhat.com
-    name: Red Hat support
+  - email: jpkroehling@redhat.com
+    name: Juraci Paixão Kröhling
   maturity: alpha
   minKubeVersion: 1.25.0
   provider:
-    name: Red Hat
-  relatedImages:
-  - image: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.158.0
-    name: operator
-  - image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.158.0
-    name: collector
-  - image: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:0.158.0
-    name: target-allocator
-  replaces: opentelemetry-operator.v0.152.0-3
-  version: 0.158.1
+    name: OpenTelemetry Community
+  version: 0.158.0
   webhookdefinitions:
   - admissionReviewVersions:
     - v1alpha1

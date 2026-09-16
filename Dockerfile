@@ -1,71 +1,21 @@
-# Build the operator binary
-FROM registry.redhat.io/ubi9/ubi:latest AS builder
+# Get CA certificates from alpine package repo
+FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS certificates
 
-WORKDIR /opt/app-root/src
-USER root
+RUN apk --no-cache add ca-certificates
 
-COPY . /opt/app-root/src/
-# this directory is checked by ecosystem-cert-preflight-checks task in Konflux
-COPY LICENSE /licenses/
-
-RUN exportOrFail() { echo $1; if [[ $1 == *= ]]; then echo "Error: empty variable assignment"; exit 1; else export "$1"; fi } && \
-    exportOrFail VERSION_PKG="github.com/open-telemetry/opentelemetry-operator/internal/version" && \
-    exportOrFail BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') && \
-    exportOrFail OPERATOR_VERSION=$(grep -v '\#' versions.txt | grep operator | awk -F= '{print $2}') && \
-    exportOrFail OTELCOL_VERSION=$(grep -v '\#' versions.txt | grep opentelemetry-collector | awk -F= '{print $2}') && \
-    exportOrFail TARGETALLOCATOR_VERSION=$(grep -v '\#' versions.txt | grep targetallocator | awk -F= '{print $2}') && \
-    exportOrFail OPERATOR_OPAMP_BRIDGE_VERSION=$(grep -v '\#' versions.txt | grep operator-opamp-bridge | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_JAVA_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-java | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_NODEJS_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-nodejs | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_PYTHON_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-python | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_DOTNET_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-dotnet | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_GO_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-go | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_APACHE_HTTPD_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-apache-httpd | awk -F= '{print $2}') && \
-    exportOrFail AUTO_INSTRUMENTATION_NGINX_VERSION=$(grep -v '\#' versions.txt | grep autoinstrumentation-nginx | awk -F= '{print $2}') && \
-    CGO_ENABLED=0 GOFIPS140=certified go build -mod=mod -tags no_openssl -o ./opentelemetry-operator -trimpath -ldflags "-s -w \
-              -X ${VERSION_PKG}.version=${OPERATOR_VERSION} \
-              -X ${VERSION_PKG}.buildDate=${BUILD_DATE} \
-              -X ${VERSION_PKG}.otelCol=${OTELCOL_VERSION} \
-              -X ${VERSION_PKG}.targetAllocator=${TARGETALLOCATOR_VERSION} \
-              -X ${VERSION_PKG}.operatorOpAMPBridge=${OPERATOR_OPAMP_BRIDGE_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationJava=${AUTO_INSTRUMENTATION_JAVA_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationNodeJS=${AUTO_INSTRUMENTATION_NODEJS_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationPython=${AUTO_INSTRUMENTATION_PYTHON_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationDotNet=${AUTO_INSTRUMENTATION_DOTNET_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationGo=${AUTO_INSTRUMENTATION_GO_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationApacheHttpd=${AUTO_INSTRUMENTATION_APACHE_HTTPD_VERSION} \
-              -X ${VERSION_PKG}.autoInstrumentationNginx=${AUTO_INSTRUMENTATION_NGINX_VERSION}"
-
-# Use ubi-micro as the target base for a minimal runtime image
-FROM registry.redhat.io/ubi9/ubi-micro:latest AS target-base
-
+######## Start a new stage from scratch #######
 FROM scratch
+
+ARG TARGETARCH
+
 WORKDIR /
-COPY --from=target-base / /
 
-ARG VERSION=0.158.1
+# Copy the certs from Alpine
+COPY --from=certificates /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
-RUN mkdir /licenses
-COPY LICENSE /licenses/.
-COPY --from=builder /opt/app-root/src/opentelemetry-operator /usr/bin/opentelemetry-operator
+# Copy binary built on the host
+COPY bin/manager_${TARGETARCH} manager
 
-ENV GODEBUG=fips140=auto
-ARG USER_UID=1001
-USER ${USER_UID}
-ENTRYPOINT ["/usr/bin/opentelemetry-operator"]
+USER 65532:65532
 
-LABEL release="${VERSION}" \
-      version="${VERSION}" \
-      cpe="cpe:/a:redhat:openshift_distributed_tracing:3.11::el9" \
-      vendor="Red Hat, Inc." \
-      distribution-scope="public" \
-      url="https://github.com/open-telemetry/opentelemetry-operator" \
-      com.redhat.component="opentelemetry-rhel9-operator-container" \
-      name="rhosdt/opentelemetry-rhel9-operator" \
-      summary="OpenTelemetry Operator" \
-      description="Operator for the OpenTelemetry collector" \
-      io.k8s.description="Operator for the OpenTelemetry operator." \
-      io.openshift.expose-services="" \
-      io.openshift.tags="tracing" \
-      io.k8s.display-name="OpenTelemetry Operator" \
-      maintainer="support@redhat.com"
+ENTRYPOINT ["/manager"]
