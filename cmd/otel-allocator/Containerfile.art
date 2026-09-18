@@ -28,14 +28,8 @@ ARG USER_UID=1001
 USER ${USER_UID}
 ENTRYPOINT ["/usr/bin/opentelemetry-target-allocator"]
 
-LABEL release="${VERSION}" \
-      version="${VERSION}" \
-      cpe="cpe:/a:redhat:openshift_distributed_tracing:3.11::el9" \
-      vendor="Red Hat, Inc." \
-      distribution-scope="public" \
+LABEL distribution-scope="public" \
       url="https://github.com/open-telemetry/opentelemetry-operator" \
-      com.redhat.component="opentelemetry-target-allocator-rhel9-container" \
-      name="rhosdt/opentelemetry-target-allocator-rhel9" \
       summary="OpenTelemetry Target allocator" \
       description="Prometheus target allocator for the OpenTelemetry collector" \
       io.k8s.description="Target allocator for the OpenTelemetry collector." \

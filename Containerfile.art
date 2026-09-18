@@ -54,14 +54,8 @@ ARG USER_UID=1001
 USER ${USER_UID}
 ENTRYPOINT ["/usr/bin/opentelemetry-operator"]
 
-LABEL release="${VERSION}" \
-      version="${VERSION}" \
-      cpe="cpe:/a:redhat:openshift_distributed_tracing:3.11::el9" \
-      vendor="Red Hat, Inc." \
-      distribution-scope="public" \
+LABEL distribution-scope="public" \
       url="https://github.com/open-telemetry/opentelemetry-operator" \
-      com.redhat.component="opentelemetry-rhel9-operator-container" \
-      name="rhosdt/opentelemetry-rhel9-operator" \
       summary="OpenTelemetry Operator" \
       description="Operator for the OpenTelemetry collector" \
       io.k8s.description="Operator for the OpenTelemetry operator." \
