@@ -1,5 +1,6 @@
 # Build the target-allocator binary
-FROM registry.redhat.io/ubi9/ubi:latest AS builder
+# ART/doozer replaces this with the rhel-9-golang stream from ocp-build-data at rebase time
+FROM registry.redhat.io/openshift/golang-builder:golang-builder-v1.26-rhel9 AS builder
 
 WORKDIR /opt/app-root/src
 USER root
@@ -10,7 +11,7 @@ COPY LICENSE /licenses/
 
 RUN CGO_ENABLED=0 GOFIPS140=certified go build -C ./cmd/otel-allocator -mod=mod -tags no_openssl -o ./opentelemetry-target-allocator -trimpath -ldflags "-s -w"
 
-# Use ubi-micro as the target base for a minimal runtime image
+# ART/doozer replaces this with the base-rhel9 member image from ocp-build-data at rebase time
 FROM registry.redhat.io/ubi9/ubi-micro:latest AS target-base
 
 FROM scratch
