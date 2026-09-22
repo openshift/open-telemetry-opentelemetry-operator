@@ -36,12 +36,8 @@ RUN exportOrFail() { echo $1; if [[ $1 == *= ]]; then echo "Error: empty variabl
               -X ${VERSION_PKG}.autoInstrumentationApacheHttpd=${AUTO_INSTRUMENTATION_APACHE_HTTPD_VERSION} \
               -X ${VERSION_PKG}.autoInstrumentationNginx=${AUTO_INSTRUMENTATION_NGINX_VERSION}"
 
-# Use ubi-micro as the target base for a minimal runtime image
-FROM registry.redhat.io/ubi9/ubi-micro:latest AS target-base
-
-FROM scratch
+FROM registry.redhat.io/ubi9/ubi-micro:latest
 WORKDIR /
-COPY --from=target-base / /
 
 ARG VERSION=0.158.1
 

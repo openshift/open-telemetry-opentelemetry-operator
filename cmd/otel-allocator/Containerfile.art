@@ -10,12 +10,8 @@ COPY LICENSE /licenses/
 
 RUN CGO_ENABLED=0 GOFIPS140=certified go build -C ./cmd/otel-allocator -mod=mod -tags no_openssl -o ./opentelemetry-target-allocator -trimpath -ldflags "-s -w"
 
-# Use ubi-micro as the target base for a minimal runtime image
-FROM registry.redhat.io/ubi9/ubi-micro:latest AS target-base
-
-FROM scratch
+FROM registry.redhat.io/ubi9/ubi-micro:latest
 WORKDIR /
-COPY --from=target-base / /
 
 ARG VERSION=0.158.1
 
