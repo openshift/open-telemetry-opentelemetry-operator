@@ -41,8 +41,6 @@ RUN exportOrFail() { echo $1; if [[ $1 == *= ]]; then echo "Error: empty variabl
 FROM registry.redhat.io/ubi9/ubi-micro:latest
 WORKDIR /
 
-ARG VERSION=0.158.1
-
 RUN mkdir /licenses
 COPY LICENSE /licenses/.
 COPY --from=builder /opt/app-root/src/opentelemetry-operator /usr/bin/opentelemetry-operator

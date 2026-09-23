@@ -15,8 +15,6 @@ RUN CGO_ENABLED=0 GOFIPS140=certified go build -C ./cmd/otel-allocator -mod=mod 
 FROM registry.redhat.io/ubi9/ubi-micro:latest
 WORKDIR /
 
-ARG VERSION=0.158.1
-
 RUN mkdir /licenses
 COPY LICENSE /licenses/.
 COPY --from=builder /opt/app-root/src/cmd/otel-allocator/opentelemetry-target-allocator /usr/bin/opentelemetry-target-allocator
