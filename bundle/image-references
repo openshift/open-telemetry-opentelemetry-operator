@@ -7,3 +7,11 @@ spec:
     from:
       kind: DockerImage
       name: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.158.0
+  - name: opentelemetry-collector-rhel9
+    from:
+      kind: DockerImage
+      name: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector:0.158.0
+  - name: opentelemetry-target-allocator-rhel9
+    from:
+      kind: DockerImage
+      name: ghcr.io/open-telemetry/opentelemetry-operator/target-allocator:0.158.0
