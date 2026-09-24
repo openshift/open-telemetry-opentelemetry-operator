@@ -1,3 +1,6 @@
+# This file defines operator and component images
+# ART replaces the pullspec (name) in CSV.
+# Therefore the CSV has to contain these images e.g. in RELATED_IMAGE_ to make it work.
 ---
 kind: ImageStream
 apiVersion: image.openshift.io/v1
