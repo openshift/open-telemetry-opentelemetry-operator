@@ -19,10 +19,6 @@ updates:
 # spec.maintainers.
 # NOTE: spec.relatedImages is auto-injected by doozer and must NOT be
 # duplicated here.
-# TODO: Operand (collector/target-allocator) RELATED_IMAGE env-var injection is
-# pending ART-ist confirmation of the ocp-build-data name_in_bundle /
-# image-references substitution mechanism. Once confirmed, add the appropriate
-# entries to ocp-build-data rather than hardcoding pullspecs here.
 - file: openshift/manifests/opentelemetry-operator.clusterserviceversion.yaml
   update_list:
   - search: 'repository: github.com/open-telemetry/opentelemetry-operator'
