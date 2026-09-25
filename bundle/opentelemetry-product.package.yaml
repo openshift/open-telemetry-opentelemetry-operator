@@ -1,5 +1,5 @@
 packageName: opentelemetry-product
 channels:
 - name: stable
-  currentCSV: opentelemetry-operator.v0.158.0
+  currentCSV: opentelemetry-operator.v0.158.0-3
 defaultChannel: stable
