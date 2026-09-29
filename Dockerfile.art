@@ -50,7 +50,6 @@ ARG USER_UID=1001
 USER ${USER_UID}
 ENTRYPOINT ["/usr/bin/opentelemetry-operator"]
 
-
 LABEL distribution-scope="public" \
       url="https://github.com/open-telemetry/opentelemetry-operator" \
       summary="OpenTelemetry Operator" \
