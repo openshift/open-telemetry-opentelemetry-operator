@@ -26,6 +26,15 @@ updates:
   # metadata.annotations: name
   - search: "name: opentelemetry-operator.v0.158.0"
     replace: "name: opentelemetry-operator.v0.158.0-3"
+  # metadata.annotatations.repository
+  - search: "repository: github.com/open-telemetry/opentelemetry-operator"
+    replace: "repository: https://github.com/open-telemetry/opentelemetry-operator"
+  # metadata.annotatations.containerImage
+  - search: "containerImage: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator"
+    replace: "containerImage: ghcr.io/open-telemetry/opentelemetry-operator/opentelemetry-operator:0.158.0"
+  # metadata.namespace and metadata.labels
+  - search: "namespace: placeholder"
+    replace: "namespace: placeholder\n  labels:\n    operatorframework.io/arch.amd64: supported\n    operatorframework.io/arch.arm64: supported\n    operatorframework.io/arch.ppc64le: supported\n    operatorframework.io/arch.s390x: supported\n    operatorframework.io/os.linux: supported"
   # spec.version + spec.replaces
   - search: "version: 0.158.0"
     replace: "version: 0.158.0-3\n  replaces: opentelemetry-operator.v0.158.0-2"
