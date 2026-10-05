@@ -144,7 +144,7 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.9.0 // indirect
 	github.com/hashicorp/golang-lru v0.6.0 // indirect
-	github.com/hashicorp/nomad/api v0.0.0-20260528135333-5b027732945f // indirect
+	github.com/hashicorp/nomad/api v0.0.0-20261001163103-3a9af341c94e // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.41.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
