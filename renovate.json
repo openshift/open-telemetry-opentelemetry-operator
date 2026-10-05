@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "$comment": "Vulnerability alerts ignore grouping by design (each CVE gets its own PR). Automerge is not used because Prow/Tide requires lgtm+approved labels and ok-to-test for bot PRs.",
-  "extends": ["security:only-security-updates"],
+  "description": "Vulnerability alerts ignore grouping by design (each CVE gets its own PR). Automerge is not used because Prow/Tide requires lgtm+approved labels and ok-to-test for bot PRs.",
+  "extends": ["security:only-security-updates", ":disableDependencyDashboard"],
   "labels": ["dependencies"],
   "enabledManagers": ["gomod"],
   "packageRules": [
