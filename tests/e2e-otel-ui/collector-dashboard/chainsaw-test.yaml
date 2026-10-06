@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: collector-dashboard
+spec:
+  # The test enables OpenShift user workload monitoring, a cluster-wide setting shared with other tests.
+  concurrent: false
+  steps:
+  - name: enable-user-workload-monitoring
+    try:
+    - apply:
+        file: 00-workload-monitoring.yaml
+    - assert:
+        file: 00-assert.yaml
+  - name: deploy-collectors
+    try:
+    - apply:
+        file: 01-otel-collector.yaml
+    - assert:
+        file: 01-assert.yaml
+    catch:
+    - describe:
+        apiVersion: opentelemetry.io/v1beta1
+        kind: OpenTelemetryCollector
+    - podLogs:
+        selector: app.kubernetes.io/managed-by=opentelemetry-operator
+    - events: {}
+  - name: generate-telemetry
+    try:
+    - apply:
+        file: 02-generate-telemetry.yaml
+    - assert:
+        file: 02-assert.yaml
+    catch:
+    - describe:
+        apiVersion: batch/v1
+        kind: Job
+    - podLogs:
+        selector: app in (telemetrygen-traces, telemetrygen-metrics, telemetrygen-logs)
+    - events: {}
+  - name: wait-for-dashboard-metrics
+    try:
+    - apply:
+        file: 03-create-monitoring-roles.yaml
+    - assert:
+        file: 03-assert.yaml
+    - script:
+        timeout: 8m
+        content: ./check_metrics.sh
+    catch:
+    - describe:
+        apiVersion: monitoring.coreos.com/v1
+        kind: ServiceMonitor
+    - events: {}
+  - name: verify-dashboard-in-console
+    try:
+    # Script steps run in the directory of this file (hence `cd ui` and `./check_metrics.sh`).
+    # The console URL comes from the cluster in $KUBECONFIG unless BASE_URL is set. Credentials: see README.md
+    # (KUBEADMIN_PASSWORD_FILE or AUTH_STATE_FILE). Results go to $ARTIFACT_DIR (default ui/artifacts).
+    - script:
+        timeout: 30m
+        content: |
+          set -e
+          export OTEL_UI_NAMESPACE="$NAMESPACE"
+          cd ui
+          npm ci --no-audit --no-fund
+          npx playwright test
+    catch:
+    - describe:
+        apiVersion: opentelemetry.io/v1beta1
+        kind: OpenTelemetryCollector
+    - podLogs:
+        selector: app.kubernetes.io/managed-by=opentelemetry-operator
+    - events: {}

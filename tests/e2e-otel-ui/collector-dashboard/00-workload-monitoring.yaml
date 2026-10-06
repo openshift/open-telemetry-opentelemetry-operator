@@ -1,0 +1,12 @@
+# Enable OpenShift user workload monitoring (UWM) so that the ServiceMonitors created by the
+# OpenTelemetry operator for the collectors are scraped and the metrics reach the console.
+# Adapted from opentelemetry-operator tests/e2e-openshift/monitoring/00-workload-monitoring.yaml
+# (the user alertmanager setting is dropped, the dashboard only needs metrics).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true

@@ -1,0 +1,88 @@
+# Adapted from opentelemetry-operator tests/e2e-openshift/monitoring/02-generate-telemetry.yaml.
+#
+# Differences: --duration is 15m instead of 3m so that the telemetry keeps flowing while the
+# Playwright specs run (the Jobs are removed by Chainsaw on cleanup), and the container names and
+# attributes of the metrics/logs Jobs are fixed (they were copy-pasted from the traces Job).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: telemetrygen-traces
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: telemetrygen-traces
+    spec:
+      containers:
+        - name: telemetrygen-traces
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.124.1
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=cluster-collector-collector-headless:4317"
+            - "--otlp-insecure=true"
+            - "--rate=1"
+            - "--duration=15m"
+            - "--otlp-attributes=telemetrygen=\"traces\""
+            - "--otlp-header=telemetrygen=\"traces\""
+            - "--span-duration=1s"
+            - "--workers=1"
+            - "traces"
+      restartPolicy: Never
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: telemetrygen-metrics
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: telemetrygen-metrics
+    spec:
+      containers:
+        - name: telemetrygen-metrics
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.124.1
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=cluster-collector-collector-headless:4317"
+            - "--otlp-insecure=true"
+            - "--rate=1"
+            - "--duration=15m"
+            - "--otlp-attributes=telemetrygen=\"metrics\""
+            - "--otlp-header=telemetrygen=\"metrics\""
+            - "--workers=1"
+            - "metrics"
+      restartPolicy: Never
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: telemetrygen-logs
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: telemetrygen-logs
+    spec:
+      containers:
+        - name: telemetrygen-logs
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.124.1
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=cluster-collector-collector-headless:4317"
+            - "--otlp-insecure=true"
+            - "--rate=1"
+            - "--duration=15m"
+            - "--otlp-attributes=telemetrygen=\"logs\""
+            - "--otlp-header=telemetrygen=\"logs\""
+            - "--workers=1"
+            - "logs"
+      restartPolicy: Never

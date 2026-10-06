@@ -1,0 +1,79 @@
+# Runner image for the OpenShift console UI tests in tests/e2e-otel-ui.
+#
+# OpenShift CI step pods run as an arbitrary non-root user, so browsers and their system libraries have
+# to be baked into the image (`playwright install --with-deps` needs root). Playwright's own image
+# already ships Node.js, Chromium and the libraries; this adds what the Chainsaw test needs (chainsaw,
+# oc, jq, git). The test code is NOT baked in: the CI step clones distributed-tracing-qe at runtime.
+#
+# The image is also the agent image (obs-tests-runner) of the OpenTelemetry console UI job, like cypress-base
+# is for the tracing UI plugin jobs: the openshift-observability-qe-agent post step needs the Claude Code CLI to
+# triage a failure, and the otel-ui skill reruns the tests there with the same tools and browser as the step.
+#
+# PLAYWRIGHT_VERSION must match "@playwright/test" in collector-dashboard/ui/package.json, because
+# Playwright only launches the browser revision it was released with.
+#
+# Build and publish (the image is mirrored into the CI registry from quay, see the README):
+#   podman build --platform linux/amd64 -f tests/e2e-otel-ui/Dockerfile.playwright \
+#     -t quay.io/redhat-distributed-tracing-qe/playwright-base:1.63.0 tests/e2e-otel-ui
+ARG PLAYWRIGHT_VERSION=1.63.0
+FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
+
+ARG CHAINSAW_VERSION=v0.2.15
+ARG YQ_VERSION=v4.53.3
+# Fingerprint of the signing key of the Claude Code apt repository, checked before the key is trusted.
+ARG CLAUDE_CODE_KEY_FPR=31DDDE24DDFAB679F42D7BD2BAA929FF1A7ECACE
+# The tested version of the Claude Code package: a rebuild must not change the agent CLI by itself.
+ARG CLAUDE_CODE_VERSION=2.1.280-1
+# Set by podman/buildx from --platform. OpenShift CI runs amd64, arm64 lets Apple Silicon developers run natively.
+ARG TARGETARCH=amd64
+
+USER root
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl git jq tar \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install chainsaw (same release as Dockerfile-konflux), oc and kubectl
+RUN case "${TARGETARCH}" in \
+      amd64) OC_URL=https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/latest/openshift-client-linux.tar.gz ;; \
+      arm64) OC_URL=https://mirror.openshift.com/pub/openshift-v4/aarch64/clients/ocp/latest/openshift-client-linux-arm64-rhel9.tar.gz ;; \
+      *) echo "unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/chainsaw.tar.gz \
+      https://github.com/kyverno/chainsaw/releases/download/${CHAINSAW_VERSION}/chainsaw_linux_${TARGETARCH}.tar.gz \
+    && tar -xzf /tmp/chainsaw.tar.gz -C /usr/local/bin chainsaw \
+    && rm -f /tmp/chainsaw.tar.gz \
+    && curl -fsSL "${OC_URL}" | tar -xzC /usr/local/bin oc kubectl
+
+# Install yq
+RUN curl -fsSL -o /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${TARGETARCH}" \
+    && chmod +x /usr/local/bin/yq
+
+# Install the Claude Code CLI from its signed apt repository, as cypress-base does. `signed-by` trusts every key
+# in the file, so the primary keys in it must be exactly the expected one: the check fails when there is any other.
+# gnupg is only needed for that check: it is installed and purged in this same RUN, so that no layer of the image
+# has it. The package only depends on libc6 at run time.
+RUN export GNUPGHOME="$(mktemp -d)" \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gnupg \
+    && install -d -m 0755 /etc/apt/keyrings \
+    && curl -fsSL https://downloads.claude.ai/keys/claude-code.asc -o /etc/apt/keyrings/claude-code.asc \
+    && test "$(gpg --show-keys --with-colons /etc/apt/keyrings/claude-code.asc \
+         | awk -F: '$1 == "pub" { primary = 1; next } $1 == "fpr" && primary { print $10; primary = 0 }')" = "${CLAUDE_CODE_KEY_FPR}" \
+    && echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+         > /etc/apt/sources.list.d/claude-code.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends claude-code=${CLAUDE_CODE_VERSION} \
+    && apt-get purge -y --auto-remove gnupg \
+    && rm -rf /var/lib/apt/lists/* "${GNUPGHOME}"
+
+# The container runs as an arbitrary UID without a home directory: give it a writable one for the
+# npm cache and the kubeconfig cache.
+ENV HOME=/tmp/home
+RUN mkdir -p ${HOME} && chmod -R a+rwX ${HOME}
+
+WORKDIR /tmp
+
+# Do not run as root by default: the `pwuser` account (UID 1001) of the Playwright image. Numeric, so that
+# `runAsNonRoot` can be verified. OpenShift CI overrides the UID anyway, HOME above works for any UID.
+USER 1001:1001
