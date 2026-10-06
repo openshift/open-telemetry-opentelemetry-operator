@@ -34,7 +34,6 @@ metadata:
   name: obi-collector
 spec:
   mode: daemonset
-  image: (join('', ['ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:', $collectorVersion]))
   serviceAccount: obi-collector
   hostPID: true
   securityContext:
