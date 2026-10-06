@@ -1,0 +1,20 @@
+{
+  "name": "otel-collector-dashboard-ui-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright UI tests for the OpenTelemetry Collector dashboard in the OpenShift web console",
+  "scripts": {
+    "test": "playwright test",
+    "login": "tsx support/save-auth-state.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^20.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

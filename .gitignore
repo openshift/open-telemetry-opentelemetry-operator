@@ -50,4 +50,10 @@ build
 node_modules
 package-lock.json
 
+# Playwright UI tests (tests/e2e-otel-ui): the lock file is committed so CI can use `npm ci`
+!tests/e2e-otel-ui/collector-dashboard/ui/package-lock.json
+tests/e2e-otel-ui/**/artifacts/
+tests/e2e-otel-ui/**/playwright-report/
+tests/e2e-otel-ui/**/test-results/
+
 .tool-versions
