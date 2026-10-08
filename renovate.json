@@ -13,5 +13,13 @@
       ],
       "enabled": false
     }
-  ]
+  ],
+  "gomod": {
+    "packageRules": [
+      {
+        "matchDepTypes": ["indirect"],
+        "enabled": false
+      }
+    ]
+  }
 }
