@@ -1,7 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": "Vulnerability alerts ignore grouping by design (each CVE gets its own PR). Automerge is not used because Prow/Tide requires lgtm+approved labels and ok-to-test for bot PRs.",
-  "extends": ["security:only-security-updates", ":disableDependencyDashboard"],
+  "extends": [
+    "security:only-security-updates",
+    "security:goModIndirectSecurityUpdates",
+    ":disableDependencyDashboard"
+  ],
   "labels": ["dependencies"],
   "enabledManagers": ["gomod"],
   "packageRules": [
@@ -17,7 +21,12 @@
   "gomod": {
     "packageRules": [
       {
+        "description": "Override mintmaker global config: disable non-security updates for indirect deps",
         "matchDepTypes": ["indirect"],
+        "matchUpdateTypes": [
+          "major", "minor", "patch", "pin", "digest",
+          "pinDigest", "lockFileMaintenance", "rollback", "replacement"
+        ],
         "enabled": false
       }
     ]
