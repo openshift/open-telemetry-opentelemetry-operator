@@ -1,13 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Vulnerability alerts ignore grouping by design (each CVE gets its own PR). Automerge is not used because Prow/Tide requires lgtm+approved labels and ok-to-test for bot PRs.",
-  "extends": [
-    "security:only-security-updates",
-    "security:gomodIndirectSecurityUpdates",
-    ":disableDependencyDashboard"
-  ],
+  "description": "Only vulnerability/security PRs. Non-security updates are suppressed via schedule; vulnerability alerts bypass schedules by Renovate design. Automerge is not used because Prow/Tide requires lgtm+approved labels and ok-to-test for bot PRs.",
   "labels": ["dependencies"],
   "enabledManagers": ["gomod"],
+  "schedule": ["* * 1 */12 *"],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "matchManagers": ["gomod"],
