@@ -1,12 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Only vulnerability/security PRs. Non-security updates are suppressed via schedule; vulnerability alerts bypass schedules by Renovate design. Automerge is not used because Prow/Tide requires lgtm+approved labels and ok-to-test for bot PRs.",
+  "description": "Only vulnerability/security PRs. This extends the global Mintmaker config https://github.com/konflux-ci/mintmaker/blob/main/config/renovate/renovate.json",
+  "extends": ["security:only-security-updates"],
   "labels": ["dependencies"],
   "enabledManagers": ["gomod"],
-  "schedule": ["* * 1 */12 *"],
-  "vulnerabilityAlerts": {
-    "enabled": true
-  },
   "packageRules": [
     {
       "matchManagers": ["gomod"],
