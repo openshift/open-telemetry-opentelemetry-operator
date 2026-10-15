@@ -1,0 +1,79 @@
+# Chainsaw test suites of the OpenShift CI jobs of this branch.
+#
+# The jobs are defined in openshift/release (ci-operator/config/openshift/open-telemetry-opentelemetry-operator/
+# openshift-open-telemetry-opentelemetry-operator-rhosdt-<version>__art-build.yaml) and run the step
+# distributed-tracing-tests-opentelemetry-premerge, which reads this file from the pull request under test and runs
+# the suite named by its TEST_SUITE parameter. The suites live here, next to the tests, so that a test directory that
+# is added, renamed or removed is updated in the same pull request; a directory listed here that does not exist fails
+# the job.
+#
+# A suite is a list of batches, run in order; the job fails when any batch fails. A batch has:
+#   name:         the batch, part of the JUnit report name (junit_otel_<suite>_<name>.xml)
+#   dirs:         chainsaw test directories, relative to the repository root
+#   selector:     optional; "sidecar" runs the batch with --selector sidecar=native (OpenShift 4.16 and later) or
+#                 sidecar=legacy (older), the label the tests of the directories carry
+#   operator_env: optional; environment variables set on the operator (manager and webhook deployments, through the
+#                 ClusterServiceVersion) before the batch runs
+# The tests that cannot run on an OpenShift version, platform or architecture are not listed here: the jobs remove
+# them with their SKIP_TESTS parameter.
+suites:
+  # e2e-pre-merge: the critical tests, run on every pull request and required to merge. They need no operator besides
+  # the one under test and run in less than an hour.
+  critical:
+    - name: e2e
+      dirs:
+        - tests/e2e/smoke-collector/smoke-collector-deployment
+        - tests/e2e/smoke-collector/smoke-collector-daemonset
+        - tests/e2e/smoke-collector/smoke-collector-statefulset
+        - tests/e2e/smoke-collector/smoke-targetallocator
+        - tests/e2e/smoke-deletion
+        - tests/e2e/smoke-restarting-deployment
+        - tests/e2e/managed-reconcile
+        - tests/e2e/operator-restart
+        - tests/e2e/operator-metrics
+        - tests/e2e/conversion-webhook-invalid-config
+        - tests/e2e/prometheus-config-validation
+        - tests/e2e-crd-validations
+        - tests/e2e-pdb
+        - tests/e2e-autoscale
+        - tests/e2e-targetallocator/targetallocator-features
+        - tests/e2e-targetallocator/targetallocator-kubernetessd
+        - tests/e2e-instrumentation/instrumentation-python
+        - tests/e2e-instrumentation/instrumentation-java
+        - tests/e2e-openshift/route
+        - tests/e2e-openshift/networkpolicy
+        - tests/e2e-openshift/monitoring
+        - tests/e2e-openshift/scrape-in-cluster-monitoring
+    - name: sidecar
+      selector: sidecar
+      dirs:
+        - tests/e2e-sidecar
+  # e2e-ocp-<version> jobs: the full suite, run on demand on one OpenShift version each. Needs Tempo, AMQ Streams and,
+  # where the catalog of the OpenShift version has them, the Cluster Observability Operator, Loki and Logging.
+  full:
+    - name: e2e
+      dirs:
+        - tests/e2e
+        - tests/e2e-autoscale
+        - tests/e2e-crd-validations
+        - tests/e2e-openshift
+        - tests/e2e-instrumentation
+        - tests/e2e-pdb
+        - tests/e2e-otel
+        - tests/e2e-multi-instrumentation
+        - tests/e2e-targetallocator-cr
+        - tests/e2e-targetallocator
+    - name: sidecar
+      selector: sidecar
+      dirs:
+        - tests/e2e-prometheuscr
+        - tests/e2e-sidecar
+    - name: metadata-filters
+      operator_env:
+        ANNOTATIONS_FILTER: ".*filter.out,config.*.gke.io.*"
+        LABELS_FILTER: ".*filter.out"
+      dirs:
+        - tests/e2e-metadata-filters
+    - name: tls-profile
+      dirs:
+        - tests/e2e-openshift-tls-profile
