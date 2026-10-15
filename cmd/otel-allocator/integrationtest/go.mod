@@ -239,7 +239,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.26.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
-	github.com/ugorji/go/codec v1.3.1 // indirect
+	github.com/ugorji/go/codec v1.3.2 // indirect
 	github.com/vultr/govultr/v3 v3.31.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
