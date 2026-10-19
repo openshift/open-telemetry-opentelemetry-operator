@@ -509,8 +509,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.163.0 h1
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/golden v0.163.0/go.mod h1:+VcuFZIYQEe4AU9WDBoNffnf/vsppt9ZpsN+DUPBFWQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.163.0 h1:B0sgu42OgHaZBZZhBE/eV252LLX0ZD1xr89+e7ffnyU=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatatest v0.163.0/go.mod h1:1S7E1cwt+SD4tfcMJY+Irhc7T5GqMJl1EKhvLYXvJiU=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.157.0 h1:oQWc2BKFkPqo14Zh+qDEWZItxJacKSubLjtFirojFnk=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.157.0/go.mod h1:fMeXcxEg6tHlCPRjf2jQ6KavnvDrwoGvJ8q8ihDk3BE=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.161.0 h1:+2B7C+G+xI8oFpXibJJrJslPBGKXpm/omzbOgBhS/R4=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.161.0/go.mod h1:oryfiqu59Q9no8x69+C4KOvZt1Ay/twAP8IApotDE6g=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.157.0 h1:TYVd0gt21uI45No4pBFTvfiQc4nPTSF6d4bixWEe4s8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.157.0/go.mod h1:7sLvJFRBbo3IYpt2RjqWSkIE6UvAIuD/DGPCFXEq1CI=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.157.0 h1:utTkQG8QQb9REB0jhOq02c/NV536BZPgClOKX/+nJCs=
