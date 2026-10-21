@@ -127,7 +127,7 @@ require (
 	github.com/digitalocean/godo v1.227.0 // indirect
 	github.com/docker/go-connections v0.8.2 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
-	github.com/ebitengine/purego v0.11.1 // indirect
+	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/edsrzf/mmap-go v1.2.1-0.20241212181136-fad1cd13edbd // indirect
 	github.com/efficientgo/core v1.0.0-rc.3 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.40.0 // indirect
