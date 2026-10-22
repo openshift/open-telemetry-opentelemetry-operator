@@ -263,7 +263,7 @@ require (
 	github.com/go-openapi/swag/typeutils v0.29.2 // indirect
 	github.com/go-openapi/swag/yamlutils v0.29.2 // indirect
 	github.com/gofrs/flock v0.13.1 // indirect
-	github.com/google/cel-go v0.31.0 // indirect
+	github.com/google/cel-go v0.32.0 // indirect
 	github.com/gophercloud/gophercloud/v2 v2.15.0 // indirect
 	github.com/hashicorp/go-metrics v0.7.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
