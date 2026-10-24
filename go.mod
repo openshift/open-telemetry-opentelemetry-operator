@@ -231,13 +231,13 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.6 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.6 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/v4a v1.5.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.339.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.340.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ecs v1.102.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/elasticache v1.64.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.21 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.14.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/kafka v1.65.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/lightsail v1.66.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/lightsail v1.67.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/rds v1.131.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/signin v1.10.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.38.4 // indirect
