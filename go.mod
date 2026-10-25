@@ -307,7 +307,7 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	k8s.io/apiserver v0.37.1 // indirect
 	k8s.io/streaming v0.37.1 // indirect
-	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.36.0 // indirect
+	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.37.0 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2 // indirect
 )
