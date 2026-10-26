@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/integrationtest
 
-go 1.26.9
+go 1.26.10
 
 // This is a separate module so the collector + prometheus receiver dependency
 // graph stays out of the target allocator binary's module. It imports the target
@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/go-logr/logr v1.4.4
-	github.com/prometheus/client_golang v1.24.1
+	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/common v0.72.0
 	github.com/prometheus/prometheus v0.314.0
 	github.com/stretchr/testify v1.12.1
@@ -166,7 +166,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20261016150620-df630b26e78a // indirect
 	github.com/hashicorp/serf v0.11.0 // indirect
-	github.com/hetznercloud/hcloud-go/v2 v2.47.0 // indirect
+	github.com/hetznercloud/hcloud-go/v2 v2.53.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.3.11 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
