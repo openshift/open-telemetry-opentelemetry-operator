@@ -87,7 +87,7 @@ require (
 	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
-	github.com/digitalocean/godo v1.231.0 // indirect
+	github.com/digitalocean/godo v1.232.0 // indirect
 	github.com/docker/go-connections v0.8.2 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/edsrzf/mmap-go v1.2.1-0.20241212181136-fad1cd13edbd // indirect
@@ -219,8 +219,8 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v9 v9.0.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v12 v12.1.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.7.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v4 v4.3.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.47.4 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.33.10 // indirect
