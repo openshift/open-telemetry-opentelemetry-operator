@@ -33,8 +33,8 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.3 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.15.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.13.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v9 v9.0.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v12 v12.1.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v5 v5.7.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v4 v4.3.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.10.1 // indirect
 	github.com/Code-Hex/go-generics-cache v1.5.1 // indirect
 	github.com/Microsoft/go-winio v0.6.4 // indirect
@@ -219,7 +219,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.15.1 // indirect
 	github.com/prometheus-operator/prometheus-operator v0.94.1 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.94.1 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.94.2 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.94.1 // indirect
 	github.com/prometheus/alertmanager v0.34.1 // indirect
 	github.com/prometheus/client_golang/exp v0.0.0-20261014095535-2b01b52f0c18 // indirect
