@@ -256,7 +256,7 @@ ci: generate fmt vet test ensure-update-is-noop
 
 # Update manifests
 .PHONY: update
-update: generate manifests bundle api-docs update-example-images reset
+update: generate manifests set-related-images bundle api-docs update-example-images reset
 
 # Build manager binary
 .PHONY: manager
@@ -299,6 +299,12 @@ uninstall: manifests kustomize
 set-image-controller: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	cd config/overlays/openshift && $(KUSTOMIZE) edit set image controller=${IMG}
+
+# Update RELATED_IMAGE env vars in deployment manifests from versions.txt
+.PHONY: set-related-images
+set-related-images:
+	$(SED_INPLACE) 's|opentelemetry-collector:[0-9][0-9a-zA-Z.\-]*|opentelemetry-collector:$(subst ",,$(OTELCOL_VERSION))|' config/manager/manager.yaml config/overlays/openshift/webhook-deployment.yaml
+	$(SED_INPLACE) 's|target-allocator:[0-9][0-9a-zA-Z.\-]*|target-allocator:$(TARGETALLOCATOR_VERSION)|' config/manager/manager.yaml config/overlays/openshift/webhook-deployment.yaml
 
 # Add a custom argument to the operator deployment
 .PHONY: add-operator-arg
@@ -1078,6 +1084,7 @@ bundle:
 .PHONY: reset
 reset: kustomize operator-sdk manifests
 	$(MAKE) VERSION=${OPERATOR_VERSION} set-image-controller
+	$(MAKE) set-related-images
 	$(OPERATOR_SDK)  generate kustomize manifests -q --input-dir config/manifests/community --output-dir config/manifests/community
 	$(OPERATOR_SDK)  generate kustomize manifests -q --input-dir config/manifests/openshift --output-dir config/manifests/openshift
 
@@ -1166,11 +1173,11 @@ chlog-insert-components:
 	@echo "* [OpenTelemetry Contrib - v${OTELCOL_VERSION}](https://github.com/open-telemetry/opentelemetry-collector-contrib/releases/tag/v${OTELCOL_VERSION})" >>components.md
 	@echo "* [Java auto-instrumentation - v${DEFAULT_INSTRUMENTATION_JAVA_VERSION}-${INSTRUMENTATION_JAVA_REVISION}](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v${DEFAULT_INSTRUMENTATION_JAVA_VERSION})" >>components.md
 	@echo "* [.NET auto-instrumentation - v${DEFAULT_INSTRUMENTATION_DOTNET_VERSION}-${INSTRUMENTATION_DOTNET_REVISION}](https://github.com/open-telemetry/opentelemetry-dotnet-instrumentation/releases/tag/v${DEFAULT_INSTRUMENTATION_DOTNET_VERSION})" >>components.md
-	@echo "* [Node.JS - v${DEFAULT_INSTRUMENTATION_NODEJS_VERSION}-${INSTRUMENTATION_NODEJS_REVISION}](https://github.com/open-telemetry/opentelemetry-js/releases/tag/experimental%2Fv${DEFAULT_INSTRUMENTATION_NODEJS_VERSION})" >>components.md
+	@echo "* [Node.JS - v${INSTRUMENTATION_NODEJS_VERSION}-${INSTRUMENTATION_NODEJS_REVISION}](https://github.com/open-telemetry/opentelemetry-js/releases/tag/experimental%2Fv${INSTRUMENTATION_NODEJS_VERSION})" >>components.md
 	@echo "* [Python - v${DEFAULT_INSTRUMENTATION_PYTHON_VERSION}-${INSTRUMENTATION_PYTHON_REVISION}](https://github.com/open-telemetry/opentelemetry-python-contrib/releases/tag/v${DEFAULT_INSTRUMENTATION_PYTHON_VERSION})" >>components.md
 	@echo "* [Ruby - v${DEFAULT_INSTRUMENTATION_RUBY_VERSION}](https://github.com/open-telemetry/opentelemetry-ruby-instrumentation/releases/tag/v${DEFAULT_INSTRUMENTATION_RUBY_VERSION})" >>components.md
 	@echo "* [Go - ${DEFAULT_INSTRUMENTATION_GO_VERSION}](https://github.com/open-telemetry/opentelemetry-go-instrumentation/releases/tag/${DEFAULT_INSTRUMENTATION_GO_VERSION})" >>components.md
-    @echo "* [PHP - ${DEFAULT_INSTRUMENTATION_PHP_VERSION}](https://packagist.org/packages/open-telemetry/ext-opentelemetry/#${DEFAULT_INSTRUMENTATION_PHP_VERSION})" >>components.md
+	@echo "* [PHP - ${DEFAULT_INSTRUMENTATION_PHP_VERSION}](https://packagist.org/packages/open-telemetry/ext-opentelemetry/#${DEFAULT_INSTRUMENTATION_PHP_VERSION})" >>components.md
 	@echo "* [ApacheHTTPD - ${DEFAULT_INSTRUMENTATION_APACHE_HTTPD_VERSION}-${INSTRUMENTATION_APACHE_HTTPD_REVISION}](https://github.com/open-telemetry/opentelemetry-cpp-contrib/releases/tag/webserver%2Fv${DEFAULT_INSTRUMENTATION_APACHE_HTTPD_VERSION})" >>components.md
 	@echo "* [Nginx - ${DEFAULT_INSTRUMENTATION_NGINX_VERSION}-${INSTRUMENTATION_APACHE_HTTPD_REVISION}](https://github.com/open-telemetry/opentelemetry-cpp-contrib/releases/tag/webserver%2Fv${DEFAULT_INSTRUMENTATION_NGINX_VERSION})" >>components.md
 	@$(SED_INPLACE) '/<!-- next version -->/r ./components.md' CHANGELOG.md
