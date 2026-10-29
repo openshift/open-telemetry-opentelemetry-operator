@@ -404,8 +404,8 @@ github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27k
 github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsReI=
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
-github.com/maxatome/go-testdeep v1.14.0 h1:rRlLv1+kI8eOI3OaBXZwb3O7xY3exRzdW5QyX48g9wI=
-github.com/maxatome/go-testdeep v1.14.0/go.mod h1:lPZc/HAcJMP92l7yI6TRz1aZN5URwUBUAfUNvrclaNM=
+github.com/maxatome/go-testdeep v1.16.0 h1:Btr/xvvx7bfQ63vGZ3zgOhM1kbTMusw+q0uVJtMp3gs=
+github.com/maxatome/go-testdeep v1.16.0/go.mod h1:BEC221DXFjTrG2VLzAYYi3xz8aK1QYa391djuaR2jkA=
 github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a h1:0usWxe5SGXKQovz3p+BiQ81Jy845xSMu2CWKuXsXuUM=
 github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a/go.mod h1:3OETvrxfELvGsU2RoGGWercfeZ4bCL3+SOwzIWtJH/Q=
 github.com/michel-laterman/proxy-connect-dialer-go v0.1.0 h1:Q8asukpmyrEheocd+R+6YEI4jcm62sHHalgTMG+LoLw=
