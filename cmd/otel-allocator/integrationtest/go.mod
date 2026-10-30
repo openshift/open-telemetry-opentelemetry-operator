@@ -248,7 +248,7 @@ require (
 	go.mongodb.org/mongo-driver/v2 v2.9.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/collector/client v1.70.0 // indirect
-	go.opentelemetry.io/collector/component v1.69.0 // indirect
+	go.opentelemetry.io/collector/component v1.70.0 // indirect
 	go.opentelemetry.io/collector/component/componentstatus v0.163.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/configcompression v1.69.0 // indirect
