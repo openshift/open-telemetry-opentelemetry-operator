@@ -251,7 +251,7 @@ require (
 	go.opentelemetry.io/collector/component v1.70.0 // indirect
 	go.opentelemetry.io/collector/component/componentstatus v0.164.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.70.0 // indirect
-	go.opentelemetry.io/collector/config/configcompression v1.69.0 // indirect
+	go.opentelemetry.io/collector/config/configcompression v1.70.0 // indirect
 	go.opentelemetry.io/collector/config/confighttp v0.163.0 // indirect
 	go.opentelemetry.io/collector/config/configmiddleware v1.69.0 // indirect
 	go.opentelemetry.io/collector/config/confignet v1.69.0 // indirect
