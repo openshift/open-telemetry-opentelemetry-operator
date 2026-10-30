@@ -7,7 +7,7 @@ retract v1.51.0
 require (
 	dario.cat/mergo v1.0.2
 	github.com/Masterminds/semver/v3 v3.5.0
-	github.com/aws/smithy-go v1.28.6 // indirect
+	github.com/aws/smithy-go v1.28.7 // indirect
 	github.com/blang/semver/v4 v4.0.0
 	github.com/buraksezer/consistent v0.10.0
 	github.com/cert-manager/cert-manager v1.21.1
