@@ -1,18 +1,15 @@
 module github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/integrationtest
 
-go 1.26.9
+go 1.27
 
 // This is a separate module so the collector + prometheus receiver dependency
 // graph stays out of the target allocator binary's module. It imports the target
 // allocator's internal packages directly (permitted because it lives under
 // cmd/otel-allocator/) and a real prometheus receiver, and wires them in-process.
 require (
+	github.com/go-logr/logr v1.4.4
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.157.0
 	github.com/open-telemetry/opentelemetry-operator v0.0.0-00010101000000-000000000000
-)
-
-require (
-	github.com/go-logr/logr v1.4.4
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/common v0.72.1
 	github.com/prometheus/prometheus v0.315.0
