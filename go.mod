@@ -26,7 +26,7 @@ require (
 	github.com/oklog/run v1.2.0
 	github.com/oklog/ulid/v2 v2.1.2
 	github.com/open-telemetry/opamp-go v0.25.0
-	github.com/openshift/api v0.0.0-20261031042726-f677639a402f
+	github.com/openshift/api v0.0.0-20261103092703-9a8f95cd7206
 	github.com/operator-framework/api v0.45.0
 	github.com/operator-framework/operator-lib v0.19.0
 	github.com/prometheus-operator/prometheus-operator v0.94.2
@@ -38,7 +38,7 @@ require (
 	github.com/shirou/gopsutil/v4 v4.26.10
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.1
-	go.opentelemetry.io/collector/featuregate v1.69.0
+	go.opentelemetry.io/collector/featuregate v1.70.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0
 	go.opentelemetry.io/contrib/otelconf v0.27.0
 	go.opentelemetry.io/otel v1.47.0
@@ -214,11 +214,11 @@ require (
 require (
 	github.com/open-telemetry/opentelemetry-operator/apis v0.0.0-unpublished
 	github.com/openshift/controller-runtime-common v0.0.0-20261008111711-8ec0dc844066
-	github.com/openshift/library-go v0.0.0-20261028054900-dbcad7febe41
+	github.com/openshift/library-go v0.0.0-20261030161254-298cf2d19148
 	go.opentelemetry.io/collector/pdata v1.66.0
 	go.opentelemetry.io/contrib/bridges/prometheus v0.72.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.47.0
-	go.yaml.in/yaml/v3 v3.0.5
+	go.yaml.in/yaml/v3 v3.0.6
 	sigs.k8s.io/e2e-framework v0.7.0
 )
 
