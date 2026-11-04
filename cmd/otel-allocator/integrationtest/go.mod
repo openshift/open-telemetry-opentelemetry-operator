@@ -1,6 +1,6 @@
 module github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/integrationtest
 
-go 1.26.9
+go 1.26.10
 
 // This is a separate module so the collector + prometheus receiver dependency
 // graph stays out of the target allocator binary's module. It imports the target
@@ -100,7 +100,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.10.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
-	github.com/gin-contrib/sse v1.1.2 // indirect
+	github.com/gin-contrib/sse v1.2.0 // indirect
 	github.com/gin-gonic/gin v1.12.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.1 // indirect
