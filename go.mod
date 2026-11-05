@@ -117,8 +117,8 @@ require (
 	github.com/go-openapi/swag v0.29.2 // indirect
 	github.com/go-openapi/validate v1.0.1 // indirect
 	github.com/go-playground/locales v0.14.2 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.1 // indirect
+	github.com/go-playground/universal-translator v0.18.2 // indirect
+	github.com/go-playground/validator/v10 v10.30.6 // indirect
 	github.com/go-resty/resty/v2 v2.17.2 // indirect
 	github.com/go-zookeeper/zk v1.0.4 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
@@ -216,8 +216,8 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v9 v9.0.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v12 v12.1.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v8 v8.3.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v8 v8.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.8 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.47.5 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.33.13 // indirect
