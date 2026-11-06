@@ -280,7 +280,7 @@ require (
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/sigv4 v0.5.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/quic-go/quic-go v0.64.1 // indirect
+	github.com/quic-go/quic-go v0.65.0 // indirect
 	github.com/sony/gobreaker/v2 v2.4.0 // indirect
 	github.com/stackitcloud/stackit-sdk-go/core v0.27.1 // indirect
 	github.com/vultr/govultr/v3 v3.33.2 // indirect
