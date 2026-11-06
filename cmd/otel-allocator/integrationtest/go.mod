@@ -232,7 +232,7 @@ require (
 	github.com/prometheus/sigv4 v0.5.0 // indirect
 	github.com/puzpuzpuz/xsync/v4 v4.5.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/quic-go/quic-go v0.64.1 // indirect
+	github.com/quic-go/quic-go v0.65.0 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.39.0 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c // indirect
@@ -286,7 +286,7 @@ require (
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap/exp v0.3.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.6 // indirect
+	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.9 // indirect
 	golang.org/x/arch v0.32.0 // indirect
