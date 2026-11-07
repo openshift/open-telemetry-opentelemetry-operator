@@ -273,7 +273,7 @@ require (
 	github.com/moby/moby/api v1.56.1 // indirect
 	github.com/moby/moby/client v0.6.2 // indirect
 	github.com/moby/spdystream v0.5.1 // indirect
-	github.com/oracle/oci-go-sdk/v65 v65.128.0 // indirect
+	github.com/oracle/oci-go-sdk/v65 v65.129.0 // indirect
 	github.com/outscale/osc-sdk-go/v2 v2.35.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/client_golang/exp v0.0.0-20261029143915-315e02064a4f // indirect
