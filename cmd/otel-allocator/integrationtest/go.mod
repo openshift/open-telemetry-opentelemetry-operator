@@ -15,7 +15,7 @@ require (
 	github.com/go-logr/logr v1.4.4
 	github.com/prometheus/client_golang v1.25.0
 	github.com/prometheus/common v0.72.1
-	github.com/prometheus/prometheus v0.315.0
+	github.com/prometheus/prometheus v0.315.1
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component/componenttest v0.164.0
 	go.opentelemetry.io/collector/confmap v1.70.0
@@ -218,7 +218,7 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus-community/prom-label-proxy v0.16.0 // indirect
+	github.com/prometheus-community/prom-label-proxy v0.16.2 // indirect
 	github.com/prometheus-operator/prometheus-operator v0.94.1 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.94.1 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.94.1 // indirect
@@ -299,13 +299,13 @@ require (
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
 	google.golang.org/api v0.310.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20261026165753-2ffab32bce7e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261026165753-2ffab32bce7e // indirect
 	google.golang.org/grpc v1.85.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
-	gopkg.in/evanphx/json-patch.v5 v5.9.11 // indirect
+	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
