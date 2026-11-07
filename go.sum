@@ -485,8 +485,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 h1:o4JXh1EVt9k/+g42oCprj/FisM4qX9L3sZB3upGN2ZU=
 github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55/go.mod h1:OmDBASR4679mdNQnz2pUhc2G8CO2JrUAVFDRBDP/hJE=
-github.com/prometheus-community/prom-label-proxy v0.16.0 h1:GyHIr6YJ4FYY9K+8eaJoaFSTgnf65RLSajzSyj4DI2c=
-github.com/prometheus-community/prom-label-proxy v0.16.0/go.mod h1:yzvKap5MHUhBE3JZoTiQoBLBNcfCaDj01cCrQEp23pQ=
+github.com/prometheus-community/prom-label-proxy v0.16.2 h1:Yzm+Xs3W1xOWFJb24z3qm/Zf/XyAyf+1DVp1f4eARBY=
+github.com/prometheus-community/prom-label-proxy v0.16.2/go.mod h1:qw3R0icL2I7LNJ8koD4tbb9yUCpG8ll1uBfkV4R+ifA=
 github.com/prometheus-operator/prometheus-operator v0.92.0 h1:tAbsod3+9sQsxDeAvLP27dAe9terToht5M+YdDwLGP0=
 github.com/prometheus-operator/prometheus-operator v0.92.0/go.mod h1:2btUkMWS08wTIe0Anw66puUf160oaFDuXqR+aH1iZww=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.92.0 h1:cgcHnhpMbk86QzIe23vwUiIUNBB0kftdOA9JJA83ASA=
@@ -518,8 +518,8 @@ github.com/prometheus/procfs v0.0.2/go.mod h1:TjEm7ze935MbeOT/UhFTIMYKhuLP4wbCsT
 github.com/prometheus/procfs v0.0.8/go.mod h1:7Qr8sr6344vo1JqZ6HhLceV9o3AJ1Ff+GxbHq6oeK9A=
 github.com/prometheus/procfs v0.22.0 h1:6q9+/JL9IKAPbCmBrv9n5O5Ty3NKnciV5X7YGw0oics=
 github.com/prometheus/procfs v0.22.0/go.mod h1:CvmFr/GVhIjIvWJZW3tgkODBQMRIf0EyWMQLHCHab58=
-github.com/prometheus/prometheus v0.315.0 h1:sFGZWmC2Hk9N1NBJGCnXYZb5hyLCq8yuAMoEjLAg6ac=
-github.com/prometheus/prometheus v0.315.0/go.mod h1:B+80h4JO0zXpoFCiWStHtpsAWrEOwY24B9/CLgzUIuc=
+github.com/prometheus/prometheus v0.315.1 h1:ZXaNKyUO5szJhhw7gKiP6b2jpx1QkS0S3CI1R1bPqIA=
+github.com/prometheus/prometheus v0.315.1/go.mod h1:6ISUXTjRxj9U2d8ssng8khR1b2dDJ+MpftZD190149I=
 github.com/prometheus/sigv4 v0.5.0 h1:WWZDeiCPFTBJIniIa+pv3edYtPHtZxDAa5w5Tmp+UuQ=
 github.com/prometheus/sigv4 v0.5.0/go.mod h1:oLsQ72mP5bVxsIrFgv/gT2jY1devyRLZhAvrsWG4SEk=
 github.com/quic-go/go-ossfuzz-seeds v0.1.0 h1:APacT+iIaNF6fd8AGEiN3bT/Jtkd2jz4v4TzM7MFjy0=
