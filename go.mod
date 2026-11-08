@@ -276,7 +276,7 @@ require (
 	github.com/oracle/oci-go-sdk/v65 v65.129.0 // indirect
 	github.com/outscale/osc-sdk-go/v2 v2.35.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
-	github.com/prometheus/client_golang/exp v0.0.0-20261029143915-315e02064a4f // indirect
+	github.com/prometheus/client_golang/exp v0.0.0-20261105144753-f54d392372dc // indirect
 	github.com/prometheus/otlptranslator v1.0.0 // indirect
 	github.com/prometheus/sigv4 v0.5.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
