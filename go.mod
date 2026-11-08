@@ -68,7 +68,7 @@ replace github.com/open-telemetry/opentelemetry-operator/apis v0.0.0-unpublished
 
 require (
 	cel.dev/expr v0.25.3 // indirect
-	cloud.google.com/go/auth v0.24.2 // indirect
+	cloud.google.com/go/auth v0.24.3 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.3.1 // indirect
 	cloud.google.com/go/compute/metadata v0.10.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.24.0 // indirect
