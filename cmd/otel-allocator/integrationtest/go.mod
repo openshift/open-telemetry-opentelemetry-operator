@@ -209,7 +209,7 @@ require (
 	github.com/oracle/oci-go-sdk/v65 v65.129.0 // indirect
 	github.com/outscale/osc-sdk-go/v2 v2.35.0 // indirect
 	github.com/ovh/go-ovh v1.9.0 // indirect
-	github.com/pandatix/go-abnf v0.5.3 // indirect
+	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/pb33f/go-yaml v0.1.1 // indirect
 	github.com/pb33f/jsonpath v0.8.4 // indirect
 	github.com/pb33f/libopenapi v0.42.3 // indirect
