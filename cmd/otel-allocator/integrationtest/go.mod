@@ -14,7 +14,7 @@ require (
 require (
 	github.com/go-logr/logr v1.4.4
 	github.com/prometheus/client_golang v1.25.0
-	github.com/prometheus/common v0.72.1
+	github.com/prometheus/common v0.73.1
 	github.com/prometheus/prometheus v0.315.1
 	github.com/stretchr/testify v1.12.1
 	go.opentelemetry.io/collector/component/componenttest v0.164.0
@@ -209,6 +209,7 @@ require (
 	github.com/oracle/oci-go-sdk/v65 v65.129.0 // indirect
 	github.com/outscale/osc-sdk-go/v2 v2.35.0 // indirect
 	github.com/ovh/go-ovh v1.9.0 // indirect
+	github.com/pandatix/go-abnf v0.5.3 // indirect
 	github.com/pb33f/go-yaml v0.1.1 // indirect
 	github.com/pb33f/jsonpath v0.8.4 // indirect
 	github.com/pb33f/libopenapi v0.42.3 // indirect
@@ -219,9 +220,9 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.16.2 // indirect
-	github.com/prometheus-operator/prometheus-operator v0.94.1 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.94.1 // indirect
-	github.com/prometheus-operator/prometheus-operator/pkg/client v0.94.1 // indirect
+	github.com/prometheus-operator/prometheus-operator v0.95.1 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.95.1 // indirect
+	github.com/prometheus-operator/prometheus-operator/pkg/client v0.95.1 // indirect
 	github.com/prometheus/alertmanager v0.34.2 // indirect
 	github.com/prometheus/client_golang/exp v0.0.0-20261105144753-f54d392372dc // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
@@ -316,7 +317,7 @@ require (
 	k8s.io/component-base v0.37.2 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098 // indirect
-	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3 // indirect
+	k8s.io/utils v0.0.0-20261023123148-ca04ba58ecab // indirect
 	sigs.k8s.io/controller-runtime v0.25.2 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
