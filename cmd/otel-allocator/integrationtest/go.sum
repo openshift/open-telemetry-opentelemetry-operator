@@ -714,8 +714,8 @@ go.opentelemetry.io/collector/component/componenttest v0.164.0 h1:0IQOaM1hm7xgab
 go.opentelemetry.io/collector/component/componenttest v0.164.0/go.mod h1:FeOeplkGn1GtIGfFxadiO7pdfy6U5QC0q2pqNNtRkS4=
 go.opentelemetry.io/collector/config/configauth v1.70.0 h1:/IOTHLdnDfhGcK9V36+F1eW4ZhtlfkEWwA5b/INdrLw=
 go.opentelemetry.io/collector/config/configauth v1.70.0/go.mod h1:Wk9rowmoD8xAnl52V8yTsAqdiAwY6aiiUUOxu8DXp4E=
-go.opentelemetry.io/collector/config/configcompression v1.70.0 h1:ayQJaWTvxfTebVW/eU3cREe9z0H/+cDf1bftCQ4kcFY=
-go.opentelemetry.io/collector/config/configcompression v1.70.0/go.mod h1:SyPEhp8hwY8Yxuxbet2AIFDRYIEKl+tn5/jKnWtV1y0=
+go.opentelemetry.io/collector/config/configcompression v1.71.0 h1:diLhMHMb1nxALAJH1vMJVMWbOhcfOFZ2Wc23G+WHw8U=
+go.opentelemetry.io/collector/config/configcompression v1.71.0/go.mod h1:SyPEhp8hwY8Yxuxbet2AIFDRYIEKl+tn5/jKnWtV1y0=
 go.opentelemetry.io/collector/config/confighttp v0.164.0 h1:bBpvm/bWDT7yxfNflH9hHA7zGkkTTHwivCWyjkIID9M=
 go.opentelemetry.io/collector/config/confighttp v0.164.0/go.mod h1:KK+vTRrBCiurH7a4WpKCanNkrqkpyJzoFmQ4BngtZS8=
 go.opentelemetry.io/collector/config/configmiddleware v1.70.0 h1:3u5XjPF7uX7WyAYFS5Kj6fdMN3h8M1XShFZOL92NZNw=
