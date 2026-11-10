@@ -248,7 +248,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.9.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/collector/client v1.70.0 // indirect
+	go.opentelemetry.io/collector/client v1.71.0 // indirect
 	go.opentelemetry.io/collector/component v1.71.0 // indirect
 	go.opentelemetry.io/collector/component/componentstatus v0.164.0 // indirect
 	go.opentelemetry.io/collector/config/configauth v1.70.0 // indirect
@@ -259,7 +259,7 @@ require (
 	go.opentelemetry.io/collector/config/configopaque v1.70.0 // indirect
 	go.opentelemetry.io/collector/config/configoptional v1.70.0 // indirect
 	go.opentelemetry.io/collector/config/configtls v1.70.0 // indirect
-	go.opentelemetry.io/collector/consumer v1.70.0 // indirect
+	go.opentelemetry.io/collector/consumer v1.71.0 // indirect
 	go.opentelemetry.io/collector/consumer/consumererror v0.164.0 // indirect
 	go.opentelemetry.io/collector/consumer/xconsumer v0.164.0 // indirect
 	go.opentelemetry.io/collector/extension/extensionauth v1.70.0 // indirect
