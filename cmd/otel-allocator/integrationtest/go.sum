@@ -520,8 +520,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.161.0
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil v0.161.0/go.mod h1:oryfiqu59Q9no8x69+C4KOvZt1Ay/twAP8IApotDE6g=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.157.0 h1:TYVd0gt21uI45No4pBFTvfiQc4nPTSF6d4bixWEe4s8=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.157.0/go.mod h1:7sLvJFRBbo3IYpt2RjqWSkIE6UvAIuD/DGPCFXEq1CI=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.164.1 h1:6bR9/47TbPZ6mIOotQNLKget52eeBkmqwfFt10PJGbk=
-github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.164.1/go.mod h1:M5cQzaOmsLtqb2iJGUZYH8pQZLIQt+zzoyLCPmwbQps=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.165.0 h1:ryc6C79a54IS/xvKNzJzsQMzmzNcdQ6Y/KPCMrO2POQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.165.0/go.mod h1:NV6CuQzlqXyVFOpEhQA3QT1YxOOzZyYslIj4XAH+uwE=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.157.0 h1:RB2c9DHQRjMPUZ32meb2nenNNbDAI//xT69FejI0DHM=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.157.0/go.mod h1:BM4bjjmvAR6yAimFUJuz8Ve8S4K2lcoZzUSkzTTDLVw=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/deltatocumulativeprocessor v0.164.1 h1:WfIPl3fr3OinMxWnImonv4WLUGi3wDnDevYErEp+j3c=
