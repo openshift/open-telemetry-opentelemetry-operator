@@ -8,11 +8,11 @@
     },
     "devDependencies": {
         "copyfiles": "2.4.1",
-        "rimraf": "6.1.3",
+        "rimraf": "6.1.4",
         "typescript": "7.0.2"
     },
     "dependencies": {
         "@opentelemetry/api": "1.10.0",
-        "@opentelemetry/auto-instrumentations-node": "0.82.0"
+        "@opentelemetry/auto-instrumentations-node": "0.83.0"
     }
 }

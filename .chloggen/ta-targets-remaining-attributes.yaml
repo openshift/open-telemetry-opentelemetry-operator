@@ -5,17 +5,16 @@ change_type: enhancement
 component: target allocator
 
 # A brief description of the change. Surround your text with quotes ("") if it needs to start with a backtick (`).
-note: "Add `min_version`, `cipher_suites` and `curve_preferences` to the Target Allocator HTTPS server configuration."
+note: Add the `operator.targetallocator.targetsremainingattributes` feature gate to record the `opentelemetry_allocator_targets_remaining` metric per job and namespace.
 
 # One or more tracking issues related to the change
-issues: [6895]
+issues: [4637]
 
 # (Optional) One or more lines of additional information to render under the primary note.
 # These lines will be padded with 2 spaces and then inserted directly into the document.
 # Use pipe (|) for multiline entries.
 subtext: |
-  Each field is also available as a CLI flag (`--https-min-version`, `--https-cipher-suites`,
-  `--https-curve-preferences`) that overrides the config file value. Curve preferences are IANA
-  numeric IDs, for example 23 for secp256r1 and 29 for X25519.
-  When the fields are unset the server keeps its current behaviour: TLS 1.2 with Go's default
-  cipher suites and curves.
+  When the gate is enabled, the operator passes `--feature-gates=targetallocator.targetsremainingattributes` to the target allocator,
+  which then records the metric with `job.name` and `k8s.namespace.name` attributes instead of a single total.
+  `k8s.namespace.name` is taken from the `__meta_kubernetes_namespace` label and is omitted for targets that do not have it.
+  The target allocator now accepts a `--feature-gates` flag.
