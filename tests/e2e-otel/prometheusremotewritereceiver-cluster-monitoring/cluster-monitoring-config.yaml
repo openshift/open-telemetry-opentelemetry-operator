@@ -1,0 +1,22 @@
+# Remote write v2 from the platform Prometheus (prometheusK8s) to the collector.
+# writeRelabelConfigs limits the exported series to a few platform metrics to keep the
+# test light; without it every platform metric is exported. ALERTS and a recording rule
+# are included because the documentation advises exporting this kind of targeted subset
+# while the metrics arrive without type metadata (Technology Preview).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+    prometheusK8s:
+      remoteWrite:
+        - name: otel
+          url: http://prw-collector.chainsaw-prw-cluster-monitoring.svc.cluster.local:9090/api/v1/write
+          messageVersion: V2.0
+          writeRelabelConfigs:
+            - sourceLabels: [__name__]
+              regex: "up|node_cpu_seconds_total|kube_pod_info|ALERTS|instance:node_cpu_utilisation:rate1m"
+              action: keep

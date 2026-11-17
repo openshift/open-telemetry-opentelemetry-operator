@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-memorylimiter
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: traces-memorylimiter
+    spec:
+      containers:
+        - name: traces-memorylimiter
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=memorylimiterextension-collector:4317"
+            - "--otlp-insecure=true"
+            - "--traces=1"
+            # The collector is expected to reject this export - don't let
+            # that fail the job, we assert on the rejection in check_logs.sh.
+            - "--allow-export-failures"
+            - "--service=memorylimiter-test"
+            - "traces"
+      restartPolicy: Never

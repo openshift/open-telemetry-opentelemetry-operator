@@ -42,7 +42,6 @@ metadata:
   name: otel
   namespace: openshift-logging
 spec:
-  image: (join('', ['ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:', $collectorVersion]))
   serviceAccount: otel-collector-deployment
   config:
     extensions:

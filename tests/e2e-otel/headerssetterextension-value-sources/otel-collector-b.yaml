@@ -1,0 +1,56 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: hsev-b
+spec:
+  serviceAccount: hsev-collector-sa
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  config:
+    extensions:
+      health_check: {}
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            include_metadata: true
+
+    processors:
+      attributes:
+        actions:
+          - key: header.scope_orgid
+            action: insert
+            from_context: "metadata.x-scope-orgid"
+          - key: header.static
+            action: insert
+            from_context: "metadata.x-static"
+          - key: header.fallback
+            action: insert
+            from_context: "metadata.x-fallback"
+          - key: header.from_file
+            action: insert
+            from_context: "metadata.x-from-file"
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [attributes]
+          exporters: [debug]

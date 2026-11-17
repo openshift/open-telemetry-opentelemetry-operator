@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-redaction
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: traces-redaction
+    spec:
+      containers:
+        - name: traces-redaction
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=redactionprocessor-collector:4317"
+            - "--otlp-insecure=true"
+            - "--traces=1"
+            - "--telemetry-attributes=credit_card=\"4111111111111111\""
+            - "--telemetry-attributes=db.svc=\"cart\""
+            - "--telemetry-attributes=secret_field=\"topsecret\""
+            - "--service=redaction-test"
+            - "traces"
+      restartPolicy: Never

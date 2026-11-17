@@ -1,0 +1,81 @@
+# Verified FIPS allowlist for the OpenTelemetry Operator.
+# Each entry documents a non-FIPS crypto import chain that has been reviewed
+# and determined acceptable for our FIPS deployment.
+# The chain is the exact import path from the root module package to the direct importer.
+# If a new code path imports the same crypto package, it must be verified and added here.
+
+allow:
+  # --- Target Allocator: quic-go chacha20/chacha20poly1305 ---
+  # Transitive dependency of gin for HTTP/3 support; target allocator uses HTTP/1.1 only.
+  # Even if HTTP/3 were enabled, FIPS mode restricts TLS to AES-GCM cipher suites,
+  # preventing ChaCha20 negotiation.
+  - package: golang.org/x/crypto/chacha20
+    chain:
+      - github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/internal/server
+      - github.com/gin-gonic/gin
+      - github.com/quic-go/quic-go/http3
+      - github.com/quic-go/quic-go
+      - github.com/quic-go/quic-go/internal/handshake
+    reason: transitive dep of gin for HTTP/3; target allocator uses HTTP/1.1 only, FIPS TLS restricts to AES-GCM
+
+  - package: golang.org/x/crypto/chacha20
+    chain:
+      - github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/internal/server
+      - github.com/gin-gonic/gin
+      - github.com/quic-go/quic-go/http3
+      - github.com/quic-go/quic-go
+      - github.com/quic-go/quic-go/internal/handshake
+      - golang.org/x/crypto/chacha20poly1305
+    reason: internal dependency of chacha20poly1305 in quic-go, same HTTP/3 path not used
+
+  - package: golang.org/x/crypto/chacha20poly1305
+    chain:
+      - github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/internal/server
+      - github.com/gin-gonic/gin
+      - github.com/quic-go/quic-go/http3
+      - github.com/quic-go/quic-go
+      - github.com/quic-go/quic-go/internal/handshake
+    reason: transitive dep of gin for HTTP/3; target allocator uses HTTP/1.1 only, FIPS TLS restricts to AES-GCM
+
+  # --- Target Allocator: Google S2A chacha20poly1305 ---
+  # Google S2A uses chacha20poly1305 as fallback AEAD.
+  # When FIPS is enabled, S2A negotiates AES-GCM instead.
+  - package: golang.org/x/crypto/chacha20poly1305
+    chain:
+      - github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/internal/config
+      - github.com/prometheus/prometheus/config
+      - github.com/prometheus/prometheus/storage/remote/googleiam
+      - google.golang.org/api/option
+      - google.golang.org/api/internal
+      - github.com/google/s2a-go
+      - github.com/google/s2a-go/internal/handshaker
+      - github.com/google/s2a-go/internal/record
+      - github.com/google/s2a-go/internal/record/internal/halfconn
+      - github.com/google/s2a-go/internal/record/internal/aeadcrypter
+    reason: Google S2A fallback cipher, AES-GCM is used when FIPS is enabled
+
+  # --- Target Allocator: Azure SDK pkcs12 ---
+  # Transitive dependency: target allocator imports prometheus/config for scrape configuration,
+  # which pulls in the Azure AD remote write module. The target allocator does not use or expose
+  # remote write or Azure AD certificate authentication.
+  - package: golang.org/x/crypto/pkcs12
+    chain:
+      - github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/internal/config
+      - github.com/prometheus/prometheus/config
+      - github.com/prometheus/prometheus/storage/remote/azuread
+      - github.com/Azure/azure-sdk-for-go/sdk/azidentity
+    reason: transitive dep of prometheus/config; target allocator uses scrape config only, not remote write or Azure AD auth
+
+  # --- Target Allocator: OCI SDK scrypt via pkcs8 ---
+  # Transitive dependency: target allocator blank-imports prometheus/discovery/install to register
+  # all Prometheus service discovery providers. This registers OCI discovery, which pulls in the
+  # Oracle OCI SDK → youmark/pkcs8 → scrypt. The scrypt KDF is only used for encrypted PKCS#8 keys
+  # with scrypt-based key derivation in OCI SDK authentication.
+  - package: golang.org/x/crypto/scrypt
+    chain:
+      - github.com/open-telemetry/opentelemetry-operator/cmd/otel-allocator/internal/config
+      - github.com/prometheus/prometheus/discovery/install
+      - github.com/prometheus/prometheus/discovery/oci
+      - github.com/oracle/oci-go-sdk/v65/common
+      - github.com/youmark/pkcs8
+    reason: transitive dep of prometheus discovery/install; OCI SDK uses scrypt for PKCS#8 key derivation only

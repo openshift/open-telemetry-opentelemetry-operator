@@ -1,0 +1,23 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: zpagesextension
+spec:
+  steps:
+  - name: Create OTEL collector instance with the zpages extension
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Query the zpages debug endpoints
+    try:
+    - apply:
+        file: check-zpages.yaml
+    - assert:
+        file: check-zpages-assert.yaml
+  - name: Check the zpages HTTP responses
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_logs.sh

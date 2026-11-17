@@ -1,0 +1,39 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: headerssetterextension-value-sources
+spec:
+  steps:
+  - name: Create collector B, the downstream receiver
+    try:
+    - apply:
+        file: service-account.yaml
+    - apply:
+        file: otel-collector-b.yaml
+    - assert:
+        file: otel-collector-b-assert.yaml
+  - name: Create the ConfigMap with the header value file
+    try:
+    - apply:
+        file: hse-token-configmap.yaml
+  - name: Create collector A, which sets four headers from different value sources
+    try:
+    - apply:
+        file: otel-collector-a.yaml
+    - assert:
+        file: otel-collector-a-assert.yaml
+  - name: Generate and send traces with a custom header to collector A
+    try:
+    - apply:
+        file: generate-telemetry-data.yaml
+    - assert:
+        file: generate-telemetry-data-assert.yaml
+  - name: Wait for the telemetry data to be collected
+    try:
+    - sleep:
+        duration: 5s
+  - name: Check all four headers were set on the export to collector B
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_logs.sh

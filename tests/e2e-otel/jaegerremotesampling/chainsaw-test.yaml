@@ -1,0 +1,27 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: jaegerremotesampling
+spec:
+  steps:
+  - name: Create the sampling strategies ConfigMap
+    try:
+    - apply:
+        file: sampling-strategies-configmap.yaml
+  - name: Create OTEL collector instance with the jaegerremotesampling extension
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Query the sampling strategy endpoint
+    try:
+    - apply:
+        file: check-sampling.yaml
+    - assert:
+        file: check-sampling-assert.yaml
+  - name: Check the returned sampling strategies
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_logs.sh

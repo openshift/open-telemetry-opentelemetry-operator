@@ -1,0 +1,34 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: zpagesextension
+spec:
+  # The operator does not know about the zpages extension, so its HTTP port
+  # has to be exposed explicitly on the collector Service.
+  ports:
+    - name: zpages
+      port: 55679
+      protocol: TCP
+  config:
+    extensions:
+      zpages:
+        # Bind to all interfaces - the extension defaults to localhost only,
+        # which is not reachable from outside the collector pod.
+        endpoint: 0.0.0.0:55679
+
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      extensions: [zpages]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [debug]

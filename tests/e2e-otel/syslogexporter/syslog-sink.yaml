@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syslog-sink-script
+data:
+  sink.py: |
+    # A minimal syslog sink. It prints every received line prefixed with the name of the
+    # listener, so that the raw frames sent by the exporters can be checked exactly.
+    # Lines are written under a lock so that concurrent connections never interleave.
+    import socket
+    import threading
+
+    print_lock = threading.Lock()
+
+
+    def emit(text):
+        with print_lock:
+            print(text, flush=True)
+
+
+    def listen_tcp(port):
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(("0.0.0.0", port))
+        server.listen(16)
+        return server
+
+
+    def bind_udp(port):
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.bind(("0.0.0.0", port))
+        return server
+
+
+    def serve_tcp(server, tag):
+        def handle(conn):
+            buf = b""
+            while True:
+                data = conn.recv(4096)
+                if not data:
+                    break
+                buf += data
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    emit(tag + " " + line.decode("utf-8", "replace"))
+            conn.close()
+
+        while True:
+            conn, _ = server.accept()
+            threading.Thread(target=handle, args=(conn,), daemon=True).start()
+
+
+    def serve_tls_probe(server, tag):
+        # Does not print the received bytes. It reports whether the client starts a TLS
+        # handshake (record type 0x16) or sends plain text.
+        def handle(conn):
+            data = conn.recv(4096)
+            if data:
+                emit("%s received bytes=%d tls-handshake=%s" % (tag, len(data), data[:1] == b"\x16"))
+            conn.close()
+
+        while True:
+            conn, _ = server.accept()
+            threading.Thread(target=handle, args=(conn,), daemon=True).start()
+
+
+    def serve_udp(server, tag):
+        while True:
+            data, _ = server.recvfrom(65535)
+            emit(tag + " " + data.decode("utf-8", "replace").rstrip("\n"))
+
+
+    # Every socket is bound before the first handler thread starts. The readiness probe
+    # checks port 5140 only, so this is what makes a ready pod imply that all four ports
+    # accept traffic. A failed bind stops the process instead of leaving a half-working sink.
+    listeners = [
+        (serve_tcp, listen_tcp(5140), "TCP-5424"),
+        (serve_udp, bind_udp(5141), "UDP-3164"),
+        (serve_tcp, listen_tcp(5142), "TCP-OCTET"),
+        (serve_tls_probe, listen_tcp(5143), "TCP-TLSDEFAULT"),
+    ]
+    for target, server, tag in listeners:
+        threading.Thread(target=target, args=(server, tag), daemon=True).start()
+    emit("syslog sink ready")
+    threading.Event().wait()
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syslog-sink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syslog-sink
+  template:
+    metadata:
+      labels:
+        app: syslog-sink
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: sink
+        image: registry.access.redhat.com/ubi9/python-311:latest
+        command: ["python3", "/scripts/sink.py"]
+        ports:
+        - containerPort: 5140
+          protocol: TCP
+        - containerPort: 5141
+          protocol: UDP
+        - containerPort: 5142
+          protocol: TCP
+        - containerPort: 5143
+          protocol: TCP
+        # sink.py binds all four listeners before it starts serving, so a successful probe of the
+        # plain TCP listener also means the UDP and the other TCP listeners are bound. The probes
+        # keep the pod out of the Service, and the chainsaw assert, until then.
+        readinessProbe:
+          tcpSocket:
+            port: 5140
+          initialDelaySeconds: 1
+          periodSeconds: 2
+        livenessProbe:
+          tcpSocket:
+            port: 5140
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        volumeMounts:
+        - name: script
+          mountPath: /scripts
+      volumes:
+      - name: script
+        configMap:
+          name: syslog-sink-script
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syslog-sink
+spec:
+  selector:
+    app: syslog-sink
+  ports:
+  - name: tcp-5424
+    port: 5140
+    protocol: TCP
+  - name: udp-3164
+    port: 5141
+    protocol: UDP
+  - name: tcp-octet
+    port: 5142
+    protocol: TCP
+  - name: tcp-tlsdefault
+    port: 5143
+    protocol: TCP

@@ -5,7 +5,6 @@ metadata:
 spec:
   mode: deployment
   # The extension ships in the contrib and k8s distributions only.
-  image: (join('', ['ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:', $collectorVersion]))
   resources:
     limits:
       cpu: 500m

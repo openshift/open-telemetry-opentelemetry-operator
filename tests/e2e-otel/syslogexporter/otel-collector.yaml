@@ -1,0 +1,68 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: syslogexporter
+spec:
+  config:
+    receivers:
+      otlp:
+        protocols:
+          http: {}
+
+    processors:
+      # The syslog exporter does not use the log body. The message and the header fields
+      # have to be set as log attributes.
+      transform:
+        log_statements:
+          - context: log
+            statements:
+              - set(attributes["message"], body.string)
+              - set(attributes["appname"], "otel-e2e")
+              - set(attributes["hostname"], "e2e-host")
+
+    exporters:
+      # RFC 5424 over TCP. TLS is on by default for tcp, plain text needs tls.insecure.
+      syslog/tcp:
+        endpoint: syslog-sink
+        port: 5140
+        network: tcp
+        protocol: rfc5424
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+      # RFC 3164 over UDP.
+      syslog/udp:
+        endpoint: syslog-sink
+        port: 5141
+        network: udp
+        protocol: rfc3164
+        sending_queue:
+          enabled: true
+      # RFC 5424 over TCP with octet counting framing (RFC 6587).
+      syslog/octet:
+        endpoint: syslog-sink
+        port: 5142
+        network: tcp
+        protocol: rfc5424
+        enable_octet_counting: true
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+      # No tls settings: TLS is on by default for tcp, so nothing can be delivered to the
+      # plain text sink. The queue keeps the failure from blocking the other exporters.
+      syslog/tlsdefault:
+        endpoint: syslog-sink
+        port: 5143
+        network: tcp
+        protocol: rfc5424
+        sending_queue:
+          enabled: true
+
+    service:
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [transform]
+          exporters: [syslog/tcp, syslog/udp, syslog/octet, syslog/tlsdefault]

@@ -1,0 +1,40 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: memorylimiterextension
+spec:
+  # The memorylimiterextension component is not built into the public
+  # upstream otelcol-contrib image. It ships in the Red Hat build of
+  # OpenTelemetry's own collector image, so this test uses that image
+  # instead of the upstream contrib image used by the other e2e-otel tests
+  # (see also tests/e2e-otel/journaldreceiver for the same pattern).
+  image: registry.redhat.io/rhosdt/opentelemetry-collector-rhel9:latest
+  config:
+    extensions:
+      memory_limiter:
+        check_interval: 1s
+        # An unrealistically low limit so the extension trips immediately
+        # and deterministically, without needing to generate real memory
+        # pressure in the test.
+        limit_mib: 1
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            middlewares:
+              - id: memory_limiter
+          http:
+            middlewares:
+              - id: memory_limiter
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      extensions: [memory_limiter]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [debug]

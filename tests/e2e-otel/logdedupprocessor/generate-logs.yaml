@@ -1,0 +1,118 @@
+# Both tenants send from the same pod. The two containers start together and telemetrygen sends
+# its logs in one burst, so both tenants normally reach the collector within the same 10s interval
+# of the log_dedup processor. If the processor ignored metadata_keys, the two tenants would then be
+# merged into one record and check_logs.sh would fail; separate pods could start in different
+# intervals and hide that. There is no start barrier (the telemetrygen image has no shell), so an
+# interval boundary between the two bursts is possible but rare. It can only hide a metadata_keys
+# regression; it can never make a correct processor fail.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: logs-tenants
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: logs-tenants
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: tenant-a
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=logdedup-collector:4318"
+            - "--otlp-http"
+            - "--otlp-insecure=true"
+            - "--otlp-header=x-scope-orgid=\"tenant-a\""
+            - "--logs=5"
+            - "--body=duplicate message"
+            - "logs"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+        - name: tenant-b
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=logdedup-collector:4318"
+            - "--otlp-http"
+            - "--otlp-insecure=true"
+            - "--otlp-header=x-scope-orgid=\"tenant-b\""
+            - "--logs=5"
+            - "--body=duplicate message"
+            - "logs"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      restartPolicy: Never
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: logs-passthrough
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: logs-passthrough
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: logs-passthrough
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=logdedup-collector:4318"
+            - "--otlp-http"
+            - "--otlp-insecure=true"
+            - "--otlp-header=x-scope-orgid=\"tenant-a\""
+            - "--logs=3"
+            - "--body=unique passthrough message"
+            - "logs"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      restartPolicy: Never

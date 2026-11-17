@@ -1,0 +1,21 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: webhookdefault
+spec:
+  config:
+    receivers:
+      # The receiver has no default port, so the endpoint is required: the operator's webhook_event
+      # parser (open-telemetry/opentelemetry-operator#5631) rejects a receiver without endpoint and
+      # exposes the port of the endpoint on the collector Service.
+      webhook_event:
+        endpoint: 0.0.0.0:8088
+
+    exporters:
+      debug: {}
+
+    service:
+      pipelines:
+        logs:
+          receivers: [webhook_event]
+          exporters: [debug]

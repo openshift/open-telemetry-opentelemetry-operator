@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: generate-logs
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: generate-logs
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: generate-logs
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=syslogexporter-injection-collector:4318"
+            - "--otlp-http"
+            - "--otlp-insecure=true"
+            - "--logs=1"
+            # The line break in the body ends the first message; without the fix the rest becomes
+            # a second, forged message.
+            - "--body=first line\n<4>1 2003-08-24T05:14:15.000003Z forged-host forged-app - - - forged message"
+            - "logs"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      restartPolicy: Never

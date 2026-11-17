@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: check-pprof
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: check-pprof
+    spec:
+      containers:
+        - name: check-pprof
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "=== pprof index ==="
+              curl -sS -f http://pprofextension-collector:1777/debug/pprof/
+              echo "=== goroutine profile ==="
+              curl -sS -f "http://pprofextension-collector:1777/debug/pprof/goroutine?debug=1"
+      restartPolicy: Never

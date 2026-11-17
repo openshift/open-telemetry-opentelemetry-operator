@@ -1,0 +1,70 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: hsev-a
+spec:
+  serviceAccount: hsev-collector-sa
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  volumes:
+    - name: hse-token
+      configMap:
+        name: hse-token
+  volumeMounts:
+    - name: hse-token
+      mountPath: /etc/hse
+      readOnly: true
+  config:
+    extensions:
+      health_check: {}
+      headers_setter:
+        headers:
+          # From the inbound request context.
+          - key: x-scope-orgid
+            action: upsert
+            from_context: x-scope-orgid
+          # A static value.
+          - key: x-static
+            action: upsert
+            value: static-value
+          # The inbound request has no x-missing header, so the default is used.
+          - key: x-fallback
+            action: upsert
+            from_context: x-missing
+            default_value: fallback-value
+          # Read from a file, which is watched for changes.
+          - key: x-from-file
+            action: upsert
+            value_file: /etc/hse/token
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            include_metadata: true
+
+    exporters:
+      otlp:
+        endpoint: hsev-b-collector:4317
+        tls:
+          insecure: true
+        auth:
+          authenticator: headers_setter
+
+    service:
+      extensions: [headers_setter, health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlp]

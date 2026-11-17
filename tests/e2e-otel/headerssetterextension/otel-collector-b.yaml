@@ -1,0 +1,32 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: hse-b
+spec:
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            # Needed so the incoming x-scope-orgid header set by collector A's
+            # headers_setter extension is placed on the request context, where
+            # the attributes processor's from_context action can read it.
+            include_metadata: true
+
+    processors:
+      attributes:
+        actions:
+          - key: tenant.id
+            action: insert
+            from_context: "metadata.x-scope-orgid"
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [attributes]
+          exporters: [debug]

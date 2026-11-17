@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-headerssetter
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: traces-headerssetter
+    spec:
+      containers:
+        - name: traces-headerssetter
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=hse-a-collector:4317"
+            - "--otlp-insecure=true"
+            - "--traces=2"
+            - "--otlp-header=x-scope-orgid=\"tenant-a\""
+            - "--service=headerssetter-test"
+            - "traces"
+      restartPolicy: Never

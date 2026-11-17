@@ -1,0 +1,28 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: spanmetricsconnector
+spec:
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+
+    connectors:
+      span_metrics:
+        metrics_flush_interval: 5s
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [span_metrics]
+        metrics:
+          receivers: [span_metrics]
+          exporters: [debug]

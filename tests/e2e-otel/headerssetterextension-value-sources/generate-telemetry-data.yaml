@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-headerssetter-values
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: traces-headerssetter-values
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: traces-headerssetter-values
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=hsev-a-collector:4317"
+            - "--otlp-insecure=true"
+            - "--traces=2"
+            - "--otlp-header=x-scope-orgid=\"tenant-a\""
+            - "--service=headerssetter-values-test"
+            - "traces"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      restartPolicy: Never

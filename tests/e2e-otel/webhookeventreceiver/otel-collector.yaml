@@ -1,0 +1,40 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: webhookeventreceiver
+spec:
+  config:
+    receivers:
+      # Plain receiver: NDJSON bodies are split into one log record per line.
+      webhook_event/plain:
+        endpoint: 0.0.0.0:8088
+        path: /events
+        health_path: /health_check
+        split_logs_at_newline: true
+      # Requests must carry a valid HMAC signature (GitHub style: sha256=<hex>).
+      webhook_event/hmac:
+        endpoint: 0.0.0.0:8089
+        path: /events
+        health_path: /health_check
+        hmac_signature:
+          secret: e2e-secret
+          header: X-Hub-Signature-256
+          prefix: "sha256="
+      # Requests must carry this header with exactly this value (not a signature check).
+      webhook_event/header:
+        endpoint: 0.0.0.0:8090
+        path: /events
+        health_path: /health_check
+        required_header:
+          key: X-E2E-Token
+          value: e2e-token
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      pipelines:
+        logs:
+          receivers: [webhook_event/plain, webhook_event/hmac, webhook_event/header]
+          exporters: [debug]

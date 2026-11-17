@@ -1,0 +1,46 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: prw
+spec:
+  mode: deployment
+  # the requests and limits of the documented configuration; the limit is the reference of memory_limiter
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  ports:
+    - name: prw
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  config:
+    receivers:
+      prometheus_remote_write:
+        endpoint: 0.0.0.0:9090
+    processors:
+      # same processor as the documented configuration: refuse requests under memory
+      # pressure so that Prometheus retries them; no batch processor
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+    exporters:
+      # The metrics received over remote write are exposed again on the Prometheus exporter
+      # endpoint, where the test verifies them. A third-party backend would use an OTLP exporter.
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        # job and instance arrive as resource attributes; expose them as labels for the check
+        resource_to_telemetry_conversion:
+          enabled: true
+      debug:
+        verbosity: basic
+    service:
+      pipelines:
+        metrics:
+          receivers: [prometheus_remote_write]
+          processors: [memory_limiter]
+          exporters: [prometheus, debug]

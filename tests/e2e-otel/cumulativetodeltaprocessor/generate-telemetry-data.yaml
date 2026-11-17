@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metrics-cumulativetodelta
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: metrics-cumulativetodelta
+    spec:
+      containers:
+        - name: metrics-cumulativetodelta
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=cumulativetodeltaprocessor-collector:4317"
+            - "--otlp-insecure=true"
+            - "--metrics=2"
+            - "--metric-type=Sum"
+            - "--aggregation-temporality=cumulative"
+            - "--otlp-metric-name=cdt_test_metric"
+            - "--service=cumulativetodelta-test"
+            - "metrics"
+      restartPolicy: Never

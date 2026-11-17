@@ -1,0 +1,62 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: emf
+spec:
+  mode: deployment
+  # the requests and limits of the documented configuration; the limit is the reference of memory_limiter
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: aws-credentials
+          key: access_key_id
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: aws-credentials
+          key: secret_access_key
+  ports:
+    - name: prw
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  config:
+    receivers:
+      prometheus_remote_write:
+        endpoint: 0.0.0.0:9090
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+    exporters:
+      awsemf:
+        namespace: "Tracing-OCP-Monitoring"
+        log_group_name: ($log_group_name)
+        log_stream_name: ($log_stream_name)
+        log_retention: 1
+        tags: { 'tracing-otel': 'true'}
+        region: "us-east-2"
+        endpoint: "https://logs.us-east-2.amazonaws.com"
+        dimension_rollup_option: "ZeroAndSingleDimensionRollup"
+        # job and instance arrive as resource attributes; turn them into CloudWatch dimensions
+        resource_to_telemetry_conversion:
+          enabled: true
+        # the AWS EMF exporter has no sending_queue or retry_on_failure settings; it retries itself
+        max_retries: 2
+      debug:
+        verbosity: basic
+    service:
+      pipelines:
+        metrics:
+          receivers: [prometheus_remote_write]
+          processors: [memory_limiter]
+          exporters: [awsemf, debug]

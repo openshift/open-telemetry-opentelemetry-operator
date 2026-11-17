@@ -1,0 +1,49 @@
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: chainsaw-oidc-client
+spec:
+  mode: deployment
+  volumes:
+    - name: chainsaw-certs
+      configMap: 
+        name: chainsaw-certs
+  volumeMounts:
+    - name: chainsaw-certs
+      mountPath: /certs
+  config: |
+    extensions:
+      oauth2client:
+        client_id: tenant1-oidc-client
+        client_secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+        endpoint_params:
+          audience: tenant1-oidc-client
+        token_url: http://hydra:4444/oauth2/token
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+
+    processors:
+
+    exporters:
+      otlp:
+        endpoint: chainsaw-oidc-server-collector:4317
+        # The token request of the oauth2client runs inside this timeout (default 5s); a slow
+        # token endpoint would otherwise fail it with a permanent error and drop the traces.
+        timeout: 60s
+        tls:
+          insecure: false
+          ca_file: /certs/ca.crt
+        auth:
+          authenticator: oauth2client
+
+    service:
+      extensions: [oauth2client]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: []
+          exporters: [otlp]

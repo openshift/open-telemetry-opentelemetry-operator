@@ -1,0 +1,81 @@
+# Adapted from opentelemetry-operator tests/e2e-openshift/monitoring/01-otel-collector.yaml.
+#
+# `cluster-collector` receives the telemetry generated in step 02 and drives every panel of the
+# "OpenTelemetry Collector" dashboard (receiver/exporter/processor + resource usage).
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: cluster-collector
+spec:
+  mode: deployment
+  observability:
+    metrics:
+      enableMetrics: true
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
+    exporters:
+      debug:
+        verbosity: detailed
+      # Never reachable. Its failed exports make the `otelcol_exporter_send_failed_*` series exist, which the
+      # "Exported vs Failed" panels and the `metric exporter` dashboard variable depend on (the variable is
+      # built from the failed series and stays empty, and with it the metrics panel, until a failure happened).
+      otlp/unreachable:
+        endpoint: unreachable.invalid:4317
+        tls:
+          insecure: true
+        timeout: 2s
+        retry_on_failure:
+          enabled: false
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter]
+          exporters: [debug, otlp/unreachable]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter]
+          exporters: [debug]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter]
+          exporters: [debug, otlp/unreachable]
+---
+# A second, idle collector in the same namespace. It only exposes its own resource-usage metrics and
+# lets the UI test prove that the "collector instance" dashboard variable filters the panels.
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: second
+spec:
+  mode: deployment
+  observability:
+    metrics:
+      enableMetrics: true
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
+    exporters:
+      debug: {}
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter]
+          exporters: [debug]

@@ -1,0 +1,44 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: jaegerremotesampling
+spec:
+  # The operator does not know about the jaegerremotesampling extension, so
+  # its HTTP port has to be exposed explicitly on the collector Service.
+  ports:
+    - name: jrs-http
+      port: 5778
+      protocol: TCP
+  volumes:
+    - name: strategies
+      configMap:
+        name: jaegerremotesampling-strategies
+  volumeMounts:
+    - name: strategies
+      mountPath: /etc/jaeger
+  config:
+    extensions:
+      jaegerremotesampling:
+        source:
+          file: /etc/jaeger/sampling_strategies.json
+        http:
+          # Bind to all interfaces - the extension defaults to localhost
+          # only, which is not reachable from outside the collector pod.
+          endpoint: 0.0.0.0:5778
+
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    service:
+      extensions: [jaegerremotesampling]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [debug]

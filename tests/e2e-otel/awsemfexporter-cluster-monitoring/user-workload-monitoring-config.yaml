@@ -1,0 +1,17 @@
+# Remote write v2 from the user workload monitoring Prometheus to the collector.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-workload-monitoring-config
+  namespace: openshift-user-workload-monitoring
+data:
+  config.yaml: |
+    prometheus:
+      remoteWrite:
+        - name: otel
+          url: http://emf-collector.chainsaw-awsemf-cluster-monitoring.svc.cluster.local:9090/api/v1/write
+          messageVersion: V2.0
+          writeRelabelConfigs:
+            - sourceLabels: [__name__]
+              regex: "avalanche_.*"
+              action: keep

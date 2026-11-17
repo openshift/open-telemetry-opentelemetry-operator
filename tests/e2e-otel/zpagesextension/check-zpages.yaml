@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: check-zpages
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: check-zpages
+    spec:
+      containers:
+        - name: check-zpages
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "=== servicez ==="
+              curl -sS -f http://zpagesextension-collector:55679/debug/servicez
+              echo "=== pipelinez ==="
+              curl -sS -f http://zpagesextension-collector:55679/debug/pipelinez
+              echo "=== extensionz ==="
+              curl -sS -f http://zpagesextension-collector:55679/debug/extensionz
+      restartPolicy: Never

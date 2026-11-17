@@ -1,0 +1,30 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: logdedupprocessor
+spec:
+  steps:
+  - name: Create OTEL collector with the log deduplication processor
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Send duplicate logs for two tenants and logs that do not match the condition
+    try:
+    - apply:
+        file: generate-logs.yaml
+    - assert:
+        file: generate-logs-assert.yaml
+  - name: Check the deduplicated logs in the OTEL collector
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_logs.sh
+  - name: Check that a config with both include_fields and exclude_fields is rejected
+    try:
+    - apply:
+        file: otel-collector-invalid.yaml
+    - script:
+        timeout: 5m
+        content: ./check_invalid_config.sh

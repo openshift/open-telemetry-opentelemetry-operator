@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-spanmetricsconnector
+spec:
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: traces-spanmetricsconnector
+    spec:
+      containers:
+        - name: traces-spanmetricsconnector
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=spanmetricsconnector-collector:4317"
+            - "--otlp-insecure=true"
+            - "--traces=5"
+            - "--service=spanmetrics-test"
+            - "traces"
+      restartPolicy: Never

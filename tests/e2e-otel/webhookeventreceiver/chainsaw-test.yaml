@@ -1,0 +1,23 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: webhookeventreceiver
+spec:
+  steps:
+  - name: Create OTEL collector with the webhook event receivers
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Send webhook events to the receivers
+    try:
+    - apply:
+        file: send-events.yaml
+    - assert:
+        file: send-events-assert.yaml
+  - name: Check the received events in the OTEL collector
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_logs.sh

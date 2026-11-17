@@ -1,0 +1,29 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: logdedup-invalid
+spec:
+  config:
+    receivers:
+      otlp:
+        protocols:
+          http: {}
+
+    exporters:
+      debug: {}
+
+    processors:
+      log_dedup:
+        interval: 10s
+        # include_fields and exclude_fields are mutually exclusive.
+        include_fields:
+          - attributes.message
+        exclude_fields:
+          - attributes.timestamp
+
+    service:
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [log_dedup]
+          exporters: [debug]

@@ -6,7 +6,6 @@ metadata:
     regular-annotation: regular-value
 spec:
   mode: deployment
-  image: (join('', ['ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:', $collectorVersion]))
   # scheduling: nodeSelector + affinity
   nodeSelector:
     kubernetes.io/os: linux

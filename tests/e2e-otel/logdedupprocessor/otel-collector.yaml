@@ -1,0 +1,34 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: logdedup
+spec:
+  config:
+    receivers:
+      otlp:
+        protocols:
+          http:
+            # metadata_keys of the log_dedup processor are client metadata (request headers),
+            # so the receiver has to keep them.
+            include_metadata: true
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    processors:
+      log_dedup:
+        interval: 10s
+        metadata_keys:
+          - x-scope-orgid
+        metadata_cardinality_limit: 10
+        # Only logs matching this condition are deduplicated; all others pass through unchanged.
+        conditions:
+          - 'log.body.string == "duplicate message"'
+
+    service:
+      pipelines:
+        logs:
+          receivers: [otlp]
+          processors: [log_dedup]
+          exporters: [debug]

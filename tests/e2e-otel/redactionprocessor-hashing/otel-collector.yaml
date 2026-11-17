@@ -1,0 +1,65 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: redactionhash
+spec:
+  serviceAccount: redactionhash-collector-sa
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  config:
+    extensions:
+      health_check: {}
+
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    processors:
+      redaction:
+        allow_all_keys: false
+        allowed_keys:
+          - db.svc
+          - user.email
+          - contact.email
+          - auth.token
+          - http.url
+        ignored_keys:
+          - safe_attribute
+        ignored_key_patterns:
+          - "^safe_x.*"
+        blocked_key_patterns:
+          - ".*token.*"
+        blocked_values:
+          - "[a-z]+@[a-z]+\\.com"
+        allowed_values:
+          - "[a-z]+@mycompany\\.com"
+        hash_function: sha3
+        summary: info
+        url_sanitizer:
+          enabled: true
+          attributes: ["http.url"]
+          sanitize_span_name: true
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [redaction]
+          exporters: [debug]

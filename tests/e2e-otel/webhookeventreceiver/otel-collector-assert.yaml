@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhookeventreceiver-collector
+status:
+  availableReplicas: 1
+  readyReplicas: 1
+  replicas: 1
+
+---
+# The operator exposes a Service port for every receiver endpoint.
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhookeventreceiver-collector
+spec:
+  (length(ports[?to_string(port) == '8088'])): 1
+  (length(ports[?to_string(port) == '8089'])): 1
+  (length(ports[?to_string(port) == '8090'])): 1

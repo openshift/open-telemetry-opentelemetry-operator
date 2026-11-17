@@ -1,0 +1,33 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: headerssetterextension
+spec:
+  steps:
+  - name: Create collector B, the downstream receiver
+    try:
+    - apply:
+        file: otel-collector-b.yaml
+    - assert:
+        file: otel-collector-b-assert.yaml
+  - name: Create collector A, which sets the x-scope-orgid header via headers_setter
+    try:
+    - apply:
+        file: otel-collector-a.yaml
+    - assert:
+        file: otel-collector-a-assert.yaml
+  - name: Generate and send traces with a custom header to collector A
+    try:
+    - apply:
+        file: generate-telemetry-data.yaml
+    - assert:
+        file: generate-telemetry-data-assert.yaml
+  - name: Wait for the telemetry data to be collected
+    try:
+    - sleep:
+        duration: 5s
+  - name: Check the header was propagated to collector B
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_logs.sh

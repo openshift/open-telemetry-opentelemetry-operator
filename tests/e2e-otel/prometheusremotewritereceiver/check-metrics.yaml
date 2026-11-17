@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: check-remote-write-v2-metrics
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: check-metrics
+        image: mirror.gcr.io/alpine:latest
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          set -e
+          echo "Checking OpenTelemetry receiver collector metrics via Prometheus endpoint..."
+
+          # Wait for metrics to be available
+          sleep 5
+
+          ENDPOINT="http://otel-receiver-collector:8889/metrics"
+          RETRIES=12
+
+          for i in $(seq $RETRIES); do
+            echo "Attempt $i/$RETRIES: Fetching metrics from $ENDPOINT"
+
+            if wget -q -O /tmp/metrics "$ENDPOINT"; then
+              # Check for telemetrygen metrics
+              if grep -q "telemetrygen" /tmp/metrics; then
+                echo "Found telemetrygen metrics"
+                echo "Sample metrics:"
+                grep "telemetrygen" /tmp/metrics | head -10
+                echo "Remote Write v2 verification completed successfully!"
+                exit 0
+              else
+                echo "Metrics endpoint available but telemetrygen metrics not found yet"
+              fi
+            else
+              echo "Failed to reach metrics endpoint"
+            fi
+
+            sleep 2
+          done
+
+          echo "FAIL - telemetrygen metrics not found after $RETRIES attempts"
+          exit 1
+  backoffLimit: 2
+  activeDeadlineSeconds: 180

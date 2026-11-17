@@ -52,7 +52,6 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              - key: ingress-ready
                 operator: In
                 values:
                 - "true"

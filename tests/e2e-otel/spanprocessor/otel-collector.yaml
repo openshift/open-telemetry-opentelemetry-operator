@@ -1,0 +1,31 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: spanprocessor
+spec:
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+
+    exporters:
+      debug:
+        verbosity: detailed
+
+    processors:
+      span:
+        name:
+          from_attributes: ["db.svc", "operation"]
+          separator: "::"
+        status:
+          code: "Error"
+          description: "span processor test error status"
+
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [span]
+          exporters: [debug]

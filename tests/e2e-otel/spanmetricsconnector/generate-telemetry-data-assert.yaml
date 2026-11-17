@@ -1,0 +1,6 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-spanmetricsconnector
+status:
+  succeeded: 1

@@ -1,0 +1,72 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: awsemfexporter-cluster-monitoring
+spec:
+  description: "Export OpenShift in-cluster (platform) and user workload monitoring metrics to AWS CloudWatch: Prometheus remote write v2 into the OTEL collector, AWS EMF exporter out"
+  template: true
+  # The test changes the shared cluster-monitoring-config and user-workload-monitoring-config config maps.
+  concurrent: false
+  # Fixed namespace: the remote write URL in the monitoring config maps points at the collector service in it.
+  namespace: chainsaw-awsemf-cluster-monitoring
+  bindings:
+  - name: log_group_name
+    value: (join('-', ['tracing', $namespace]))
+  - name: log_stream_name
+    value: (join('-', ['tracing', $namespace, 'stream', 'emf']))
+  steps:
+  - name: Check that the cluster supports remote write v2 in the Cluster Monitoring Operator (OpenShift 5.0+)
+    try:
+    - script:
+        timeout: 1m
+        content: ./check_ocp_version.sh
+  - name: Create AWS credentials secret
+    try:
+    - script:
+        timeout: 20s
+        content: ./create-aws-creds-secret.sh
+  - name: Create the OTEL collector with the Prometheus remote write receiver and the AWS EMF exporter
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Create a sample application monitored by user workload monitoring
+    try:
+    - apply:
+        file: sample-app.yaml
+    - assert:
+        file: sample-app-assert.yaml
+  - name: Configure remote write v2 from the platform and user workload monitoring Prometheus instances to the collector
+    try:
+    - script:
+        timeout: 1m
+        content: ./backup_monitoring_config.sh
+    - script:
+        timeout: 1m
+        content: ./apply_monitoring_config.sh
+    - assert:
+        file: workload-monitoring-assert.yaml
+    # runs when the test ends, whatever the outcome of the later steps
+    cleanup:
+    - script:
+        timeout: 2m
+        content: ./cleanup_monitoring_config.sh
+    - script:
+        env:
+        - name: log_group_name
+          value: ($log_group_name)
+        timeout: 2m
+        content: ./delete_log_group.sh
+  - name: Verify that the platform and user workload metrics reach CloudWatch
+    try:
+    - script:
+        env:
+        - name: log_group_name
+          value: ($log_group_name)
+        - name: log_stream_name
+          value: ($log_stream_name)
+        # the platform Prometheus needs a few minutes before it sends the first samples after the config reload,
+        # and CloudWatch metrics appear with a delay
+        timeout: 15m
+        content: ./check_cloudwatch_metrics.sh

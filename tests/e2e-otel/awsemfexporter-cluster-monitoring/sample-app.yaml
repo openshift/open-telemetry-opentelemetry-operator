@@ -1,0 +1,61 @@
+# avalanche exposes gauges, counters, classic histograms, native histograms and summaries.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-sample-app
+  labels:
+    app: metrics-sample-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-sample-app
+  template:
+    metadata:
+      labels:
+        app: metrics-sample-app
+    spec:
+      containers:
+        - name: avalanche
+          image: quay.io/prometheuscommunity/avalanche:v0.7.0
+          args:
+            - --gauge-metric-count=2
+            - --counter-metric-count=2
+            - --histogram-metric-count=1
+            - --native-histogram-metric-count=1
+            - --summary-metric-count=1
+            - --series-count=3
+            - --label-count=2
+            - --value-interval=15
+            - --series-interval=0
+            - --metric-interval=0
+            - --port=9001
+          ports:
+            - name: metrics
+              containerPort: 9001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-sample-app
+  labels:
+    app: metrics-sample-app
+spec:
+  selector:
+    app: metrics-sample-app
+  ports:
+    - name: metrics
+      port: 9001
+      targetPort: 9001
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: metrics-sample-app
+spec:
+  selector:
+    matchLabels:
+      app: metrics-sample-app
+  endpoints:
+    - port: metrics
+      interval: 15s

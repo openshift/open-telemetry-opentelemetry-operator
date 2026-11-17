@@ -1,0 +1,54 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: prometheusremotewritereceiver-cluster-monitoring
+spec:
+  description: "Export OpenShift in-cluster (platform) and user workload monitoring metrics to the OTEL collector with Prometheus remote write v2"
+  # The test changes the shared cluster-monitoring-config and user-workload-monitoring-config config maps.
+  concurrent: false
+  # Fixed namespace: the remote write URL in the monitoring config maps points at the collector service in it.
+  namespace: chainsaw-prw-cluster-monitoring
+  steps:
+  - name: Check that the cluster supports remote write v2 in the Cluster Monitoring Operator (OpenShift 5.0+)
+    try:
+    - script:
+        timeout: 1m
+        content: ./check_ocp_version.sh
+  - name: Create the OTEL collector with the Prometheus remote write receiver
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Create a sample application monitored by user workload monitoring
+    try:
+    - apply:
+        file: sample-app.yaml
+    - assert:
+        file: sample-app-assert.yaml
+  - name: Configure remote write v2 from the platform and user workload monitoring Prometheus instances to the collector
+    try:
+    - script:
+        timeout: 1m
+        content: ./backup_monitoring_config.sh
+    - script:
+        timeout: 1m
+        content: ./apply_monitoring_config.sh
+    - assert:
+        file: workload-monitoring-assert.yaml
+    # runs when the test ends, whatever the outcome of the later steps
+    cleanup:
+    - script:
+        timeout: 2m
+        content: ./cleanup_monitoring_config.sh
+  - name: Verify that platform and user workload metrics reach the collector without remote write failures
+    try:
+    - apply:
+        file: check-metrics.yaml
+    - assert:
+        # the platform Prometheus needs a few minutes before it sends the first samples after the config reload
+        timeout: 15m
+        file: check-metrics-assert.yaml
+    - script:
+        timeout: 5m
+        content: ./check_remote_write.sh

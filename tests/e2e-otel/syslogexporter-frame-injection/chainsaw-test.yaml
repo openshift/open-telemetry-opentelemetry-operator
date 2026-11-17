@@ -1,0 +1,34 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: syslogexporter-frame-injection
+spec:
+  # Skipped until the syslog exporter escapes line breaks in attribute values, see
+  # https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/49234
+  # The test fails on collector versions that do not contain the fix. Remove this line once the
+  # collector version used by the tests contains it.
+  skip: true
+  steps:
+  - name: Create the syslog sink
+    try:
+    - apply:
+        file: ../syslogexporter/syslog-sink.yaml
+    - assert:
+        file: ../syslogexporter/syslog-sink-assert.yaml
+  - name: Create OTEL collector with the syslog exporter
+    try:
+    - apply:
+        file: otel-collector.yaml
+    - assert:
+        file: otel-collector-assert.yaml
+  - name: Send a log whose body contains a line break
+    try:
+    - apply:
+        file: generate-logs.yaml
+    - assert:
+        file: generate-logs-assert.yaml
+  - name: Check that the line break did not create a second syslog message
+    try:
+    - script:
+        timeout: 5m
+        content: ./check_injection.sh

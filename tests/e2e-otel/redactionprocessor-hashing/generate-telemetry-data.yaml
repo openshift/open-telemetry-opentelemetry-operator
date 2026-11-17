@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: traces-redaction-hashing
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: traces-redaction-hashing
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: traces-redaction-hashing
+          image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.150.0
+          command: ["./telemetrygen"]
+          args:
+            - "--otlp-endpoint=redactionhash-collector:4317"
+            - "--otlp-insecure=true"
+            - "--traces=1"
+            - "--telemetry-attributes=db.svc=\"cart\""
+            - "--telemetry-attributes=user.email=\"bob@other.com\""
+            - "--telemetry-attributes=contact.email=\"alice@mycompany.com\""
+            - "--telemetry-attributes=auth.token=\"abc123\""
+            - "--telemetry-attributes=safe_attribute=\"4111111111111111\""
+            - "--telemetry-attributes=safe_x=\"keep me\""
+            - "--telemetry-attributes=secret_field=\"topsecret\""
+            - "--telemetry-attributes=http.url=\"https://example.com/users/3f2504e0-4f89-11d3-9a0c-0305e82c3301/orders/12345\""
+            - "--service=redaction-hashing-test"
+            - "traces"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      restartPolicy: Never

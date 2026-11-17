@@ -1,0 +1,81 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: check-remote-write-metrics
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      # the job only fetches an HTTP endpoint; it does not need API credentials
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: check-metrics
+        image: mirror.gcr.io/alpine:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          set -e
+          ENDPOINT="http://prw-collector:8889/metrics"
+          # metric name followed by a label that proves its origin; both replicas of each
+          # Prometheus instance must have delivered samples
+          # extended regexes (busybox grep): braces must be escaped
+          EXPECTED='up\{.*prometheus_replica="prometheus-k8s-0"
+          up\{.*prometheus_replica="prometheus-k8s-1"
+          node_cpu_seconds_total\{.*job="node-exporter"
+          kube_pod_info\{
+          ALERTS\{.*alertname="Watchdog"
+          instance:node_cpu_utilisation:rate1m\{
+          avalanche_counter_metric_.*_total\{.*prometheus_replica="prometheus-user-workload-0"
+          avalanche_counter_metric_.*_total\{.*prometheus_replica="prometheus-user-workload-1"
+          avalanche_gauge_metric_.*\{
+          avalanche_histogram_metric_.*_bucket\{
+          avalanche_summary_metric_.*_sum\{'
+          for i in $(seq 80); do
+            echo "Attempt $i/80: fetching $ENDPOINT"
+            if wget -q -O /tmp/metrics "$ENDPOINT"; then
+              missing=0
+              echo "$EXPECTED" | while read -r pattern; do
+                [ -z "$pattern" ] && continue
+                if grep -q -E "^$pattern" /tmp/metrics; then
+                  echo "found: $pattern"
+                else
+                  echo "missing: $pattern"; exit 1
+                fi
+              done || missing=1
+              if [ "$missing" = 0 ]; then
+                echo "All platform and user workload metrics were received via remote write v2."
+                echo "Sample:"; grep -E '^(up|node_cpu_seconds_total|avalanche_counter)' /tmp/metrics | head -5 | cut -c1-200
+                exit 0
+              fi
+            else
+              echo "metrics endpoint not reachable yet"
+            fi
+            sleep 10
+          done
+          echo "FAIL: expected metrics not found on the collector"
+          exit 1
+      volumes:
+      - name: tmp
+        emptyDir: {}
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
