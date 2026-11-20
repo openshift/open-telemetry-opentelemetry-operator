@@ -511,6 +511,14 @@ tidy:
 		(cd $$dir && go mod tidy); \
 	done
 
+# Download the dependencies of every Go module in the repository
+.PHONY: mod-download
+mod-download:
+	@set -e; for dir in $(GO_MODULE_DIRS); do \
+		echo "go mod download: $$dir"; \
+		(cd $$dir && go mod download); \
+	done
+
 # Generate code
 # apis/ is a nested Go module; pass it explicitly so DeepCopy methods are regenerated
 # for the API types (the "./..." pattern does not descend into nested modules).
@@ -925,7 +933,7 @@ CMCTL = $(shell pwd)/bin/cmctl
 cmctl:
 	@{ \
 	set -e ;\
-	if (`pwd`/bin/cmctl version | grep ${CERTMANAGER_VERSION}) > /dev/null 2>&1 ; then \
+	if (`pwd`/bin/cmctl version --client | grep ${CERTMANAGER_VERSION}) > /dev/null 2>&1 ; then \
 		exit 0; \
 	fi ;\
 	TMP_DIR=$$(mktemp -d) ;\
@@ -959,7 +967,7 @@ CHAINSAW_VERSION ?= v0.2.15
 # renovate: datasource=go depName=gotest.tools/gotestsum
 GOTESTSUM_VERSION ?= v1.13.0
 # renovate: datasource=go depName=golang.org/x/vuln/cmd/govulncheck
-GOVULNCHECK_VERSION ?= v1.9.0
+GOVULNCHECK_VERSION ?= v1.10.0
 PROMTOOL ?= $(LOCALBIN)/promtool
 # promtool is the golden source for the target-allocator conformance suite. It must match
 # the prometheus/prometheus library the operator links against, so derive the release version
