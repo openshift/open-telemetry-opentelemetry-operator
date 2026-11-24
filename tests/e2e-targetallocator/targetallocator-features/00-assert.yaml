@@ -47,14 +47,6 @@ metadata:
 spec:
   template:
     spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-                operator: In
-                values:
-                - "true"
       containers:
       - env:
         - name: TEST_ENV
