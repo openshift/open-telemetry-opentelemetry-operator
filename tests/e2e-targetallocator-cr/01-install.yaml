@@ -5,14 +5,6 @@ kind: TargetAllocator
 metadata:
   name: cr
 spec:
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-          - matchExpressions:
-                operator: In
-                values:
-                  - "true"
   env:
     - name: TEST_ENV
       value: test

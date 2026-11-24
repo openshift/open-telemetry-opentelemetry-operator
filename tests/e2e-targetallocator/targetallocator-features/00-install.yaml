@@ -29,14 +29,6 @@ spec:
 
   mode: statefulset
   targetAllocator:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-              operator: In
-              values:
-              - "true"
     enabled: true
     env:
     - name: TEST_ENV
