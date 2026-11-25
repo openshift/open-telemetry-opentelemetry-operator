@@ -1,10 +1,24 @@
-# OpenShift TLS Security Profile Integration Test
+# OpenShift TLS Security Profile Integration Tests
 
-This test verifies that the OpenTelemetry Operator correctly injects and enforces the cluster-wide TLS security profile from the OpenShift APIServer into OpenTelemetry Collector components.
+This directory contains two chainsaw tests that verify the operator injects and enforces the cluster-wide TLS security profile from the OpenShift APIServer.
+
+## Tests
+
+### `tls-profile/` — Collector TLS Profile
+
+Verifies TLS profile injection into OpenTelemetry Collector components (receivers, exporters, extensions).
+
+### `ta-tls-profile/` — Target Allocator TLS Profile
+
+Verifies TLS profile injection into the Target Allocator's HTTPS configuration when mTLS is enabled. The TA ConfigMap's `https` block receives `min_version` (in component-base format, e.g. `VersionTLS12`), `cipher_suites` (Go cipher suite names), and `curve_preferences` (numeric IANA supported-group IDs, e.g. `[4588, 29, 23, 24]` for X25519MLKEM768, X25519, P256, P384).
+
+## Collector Test Overview
+
+The collector test (`tls-profile/`) validates end-to-end TLS profile injection by:
 
 ## Test Overview
 
-The test validates end-to-end TLS profile injection by:
+The collector test validates end-to-end TLS profile injection by:
 
 1. Deploying a multi-component collector with TLS-enabled receivers and exporters
 2. Verifying the cluster's Intermediate TLS profile is injected into the collector ConfigMap

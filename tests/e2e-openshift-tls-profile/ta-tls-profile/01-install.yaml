@@ -1,0 +1,29 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: ta-tls-test
+spec:
+  mode: statefulset
+  serviceAccount: collector
+  config:
+    receivers:
+      prometheus:
+        config:
+          scrape_configs: []
+    exporters:
+      debug: {}
+    service:
+      pipelines:
+        metrics:
+          receivers: [prometheus]
+          exporters: [debug]
+  targetAllocator:
+    enabled: true
+    mtls:
+      enabled: true
+    prometheusCR:
+      enabled: true
+      scrapeInterval: 30s
+      serviceMonitorSelector: {}
+      podMonitorSelector: {}
+    serviceAccount: ta

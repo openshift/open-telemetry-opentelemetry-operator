@@ -1,0 +1,18 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: ta-tls-test
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ta-tls-test-collector
+status:
+  readyReplicas: 1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ta-tls-test-targetallocator
+status:
+  readyReplicas: 1
