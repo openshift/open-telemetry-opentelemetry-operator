@@ -40,6 +40,8 @@ func TestDefaultAnnotations(t *testing.T) {
 	// the operator stamps an ownership marker when it adds default prom annotations
 	assert.Equal(t, "true", podAnnotations[PrometheusAnnotationsAddedKey])
 	assert.Equal(t, "5b3b62aa5e0a3c7250084c2b49190e30b72fc2ad352ffbaa699224e1aa900834", podAnnotations["opentelemetry-operator-config/sha256"])
+	// default OTLP ports are excluded from Istio inbound interception (TRACING-6963)
+	assert.Equal(t, "4317,4318", podAnnotations[IstioExcludeInboundPortsKey])
 }
 
 func TestNonDefaultPodAnnotation(t *testing.T) {
@@ -75,6 +77,7 @@ func TestNonDefaultPodAnnotation(t *testing.T) {
 	// the ownership marker is not stamped when DisablePrometheusAnnotations=true
 	assert.NotContains(t, podAnnotations, PrometheusAnnotationsAddedKey, "operator-owned marker should not be stamped when DisablePrometheusAnnotations=true")
 	assert.Equal(t, "fbcdae6a02b2115cd5ca4f34298202ab041d1dfe62edebfaadb48b1ee178231d", podAnnotations["opentelemetry-operator-config/sha256"])
+	assert.Equal(t, "4317,4318", podAnnotations[IstioExcludeInboundPortsKey])
 }
 
 func TestUserAnnotations(t *testing.T) {
@@ -163,4 +166,65 @@ func TestAnnotationsFilter(t *testing.T) {
 	assert.Len(t, annotations, 2)
 	assert.NotContains(t, annotations, "test.bar.io")
 	assert.Equal(t, "1234", annotations["test.io/port"])
+}
+
+func TestIstioExcludeInboundPortsDefault(t *testing.T) {
+	otelcol := v1beta1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-instance",
+			Namespace: "my-ns",
+		},
+	}
+
+	podAnnotations, err := PodAnnotations(otelcol, []string{})
+	require.NoError(t, err)
+	assert.Equal(t, "4317,4318", podAnnotations[IstioExcludeInboundPortsKey])
+}
+
+func TestIstioExcludeInboundPortsMergesUserPorts(t *testing.T) {
+	otelcol := v1beta1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-instance",
+			Namespace: "my-ns",
+		},
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				PodAnnotations: map[string]string{
+					IstioExcludeInboundPortsKey: "15090,15021",
+				},
+			},
+		},
+	}
+
+	podAnnotations, err := PodAnnotations(otelcol, []string{})
+	require.NoError(t, err)
+	assert.Equal(t, "4317,4318,15021,15090", podAnnotations[IstioExcludeInboundPortsKey])
+}
+
+func TestIstioExcludeInboundPortsFiltered(t *testing.T) {
+	otelcol := v1beta1.OpenTelemetryCollector{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-instance",
+			Namespace: "my-ns",
+		},
+		Spec: v1beta1.OpenTelemetryCollectorSpec{
+			OpenTelemetryCommonFields: v1beta1.OpenTelemetryCommonFields{
+				PodAnnotations: map[string]string{
+					IstioExcludeInboundPortsKey: "15090",
+				},
+			},
+		},
+	}
+
+	podAnnotations, err := PodAnnotations(otelcol, []string{IstioExcludeInboundPortsKey})
+	require.NoError(t, err)
+	assert.NotContains(t, podAnnotations, IstioExcludeInboundPortsKey)
+}
+
+func TestMergeCommaSeparatedPorts(t *testing.T) {
+	assert.Equal(t, "4317,4318", mergeCommaSeparatedPorts("", "4317", "4318"))
+	assert.Equal(t, "4317,4318,15021,15090", mergeCommaSeparatedPorts("15090,15021", "4317", "4318"))
+	assert.Equal(t, "4317,4318", mergeCommaSeparatedPorts("4317,4318", "4317", "4318"))
+	assert.Equal(t, "4317,4318", mergeCommaSeparatedPorts(" 4318 , ,4317 ", "4317"))
+	assert.Equal(t, "bogus", mergeCommaSeparatedPorts("bogus"))
 }
