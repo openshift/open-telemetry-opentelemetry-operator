@@ -1,0 +1,131 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  creationTimestamp: null
+  name: ta-tls-profile
+spec:
+  # Must run alone because it patches the cluster-wide APIServer resource.
+  concurrent: false
+  namespace: chainsaw-otel-ta-tls-profile
+  # Revert APIServer TLS profile on any failure to prevent cluster-wide impact.
+  catch:
+  - script:
+      timeout: 5m
+      content: |
+        oc patch apiserver cluster --type json \
+          -p '[{"op":"remove","path":"/spec/tlsSecurityProfile"}]' 2>/dev/null || true
+  steps:
+  # Step 0: Set up RBAC and generate self-signed certificates for TA mTLS.
+  - name: step-00-ta-rbac
+    use:
+      template: ../../step-templates/target-allocator-rbac-comprehensive.yaml
+  - name: step-00-collector-rbac
+    use:
+      template: ../../step-templates/collector-with-target-allocator-rbac-comprehensive.yaml
+  - name: step-00-generate-certs
+    try:
+    - script:
+        timeout: 1m
+        content: |
+          #!/bin/bash
+          set -ex
+          TMPDIR=$(mktemp -d)
+          trap 'rm -rf "$TMPDIR"' EXIT
+
+          # Generate a self-signed CA.
+          openssl req -x509 -newkey rsa:2048 \
+            -keyout "$TMPDIR/ca.key" -out "$TMPDIR/ca.crt" \
+            -days 1 -nodes -subj "/CN=ta-tls-test-ca"
+
+          # Generate a server certificate for the TA, signed by the CA.
+          openssl req -newkey rsa:2048 \
+            -keyout "$TMPDIR/server.key" -out "$TMPDIR/server.csr" \
+            -nodes -subj "/CN=ta-tls-test-targetallocator"
+          openssl x509 -req -in "$TMPDIR/server.csr" \
+            -CA "$TMPDIR/ca.crt" -CAkey "$TMPDIR/ca.key" -CAcreateserial \
+            -out "$TMPDIR/server.crt" -days 1 \
+            -extfile <(printf "subjectAltName=DNS:ta-tls-test-targetallocator,DNS:ta-tls-test-targetallocator.%s.svc,DNS:ta-tls-test-targetallocator.%s.svc.cluster.local" "$NAMESPACE" "$NAMESPACE")
+
+          # Generate a client certificate for the collector, signed by the CA.
+          openssl req -newkey rsa:2048 \
+            -keyout "$TMPDIR/client.key" -out "$TMPDIR/client.csr" \
+            -nodes -subj "/CN=ta-tls-test-collector"
+          openssl x509 -req -in "$TMPDIR/client.csr" \
+            -CA "$TMPDIR/ca.crt" -CAkey "$TMPDIR/ca.key" -CAcreateserial \
+            -out "$TMPDIR/client.crt" -days 1
+
+          # Create Kubernetes secrets.
+          kubectl create secret generic ta-mtls-ca \
+            --from-file=ca.crt="$TMPDIR/ca.crt" \
+            -n "$NAMESPACE"
+          kubectl create secret tls ta-mtls-server \
+            --cert="$TMPDIR/server.crt" --key="$TMPDIR/server.key" \
+            -n "$NAMESPACE"
+          kubectl create secret tls ta-mtls-client \
+            --cert="$TMPDIR/client.crt" --key="$TMPDIR/client.key" \
+            -n "$NAMESPACE"
+
+  # Step 1: Deploy a collector with TA mTLS enabled (user-provided certs).
+  - name: step-01
+    try:
+    - apply:
+        file: 01-install.yaml
+    - assert:
+        file: 01-assert.yaml
+    catch:
+    - podLogs:
+        selector: app.kubernetes.io/managed-by=opentelemetry-operator
+
+  # Step 2: Verify Intermediate profile injection in the TA ConfigMap.
+  - name: step-02
+    try:
+    - script:
+        timeout: 1m
+        content: ./02-verify-ta-intermediate.sh
+
+  # Step 3: Save current APIServer TLS profile and patch to Modern.
+  # Reuses the same script as the collector TLS profile test.
+  - name: step-03
+    try:
+    - script:
+        timeout: 1m
+        content: ../tls-profile/04-patch-profile.sh
+    catch:
+    - script:
+        timeout: 1m
+        content: ../tls-profile/11-revert-apiserver.sh
+
+  # Step 4: Wait for the operator to restart and re-reconcile the TA
+  # with the changed TLS profile.
+  - name: step-04
+    try:
+    - script:
+        timeout: 5m
+        content: ./04-wait-ta-reconcile.sh
+    - assert:
+        file: 01-assert.yaml
+    catch:
+    - script:
+        timeout: 1m
+        content: ../tls-profile/11-revert-apiserver.sh
+    - podLogs:
+        selector: app.kubernetes.io/managed-by=opentelemetry-operator
+
+  # Step 5: Verify changed profile injection in the TA ConfigMap.
+  - name: step-05
+    try:
+    - script:
+        timeout: 1m
+        content: ./05-verify-ta-changed.sh
+    catch:
+    - script:
+        timeout: 1m
+        content: ../tls-profile/11-revert-apiserver.sh
+
+  # Step 6: Revert APIServer TLS profile.
+  - name: step-06
+    try:
+    - script:
+        timeout: 5m
+        content: ../tls-profile/11-revert-apiserver.sh
