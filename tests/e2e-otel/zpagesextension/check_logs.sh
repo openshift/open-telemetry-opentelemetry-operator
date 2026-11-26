@@ -7,7 +7,7 @@ NAMESPACE=$NAMESPACE
 
 SEARCH_STRINGS=(
   "=== servicez ==="
-  "Service otelcol-contrib"
+  "Service otelcol"
   "=== pipelinez ==="
   "traces"
   "=== extensionz ==="
