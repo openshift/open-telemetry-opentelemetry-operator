@@ -7,6 +7,9 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/open-telemetry/opentelemetry-operator/apis/v1beta1"
 )
@@ -18,6 +21,16 @@ import (
 // remove them when DisablePrometheusAnnotations is toggled to true. This
 // avoids clobbering prometheus.io/* annotations that the user set out of band.
 const PrometheusAnnotationsAddedKey = "operator.opentelemetry.io/prometheus-annotations-added"
+
+// IstioExcludeInboundPortsKey is the Istio/OSSM pod annotation used to bypass
+// inbound Envoy interception for selected ports.
+// See TRACING-6963: OTLP gRPC (:4317) can fail with gRPC cardinality violations
+// when the collector's inbound sidecar proxies unary TraceService/Export.
+const IstioExcludeInboundPortsKey = "traffic.sidecar.istio.io/excludeInboundPorts"
+
+// defaultOTLPReceiverPorts are the OpenTelemetry Protocol default listen ports
+// that must not be intercepted by an Istio inbound sidecar on the collector.
+var defaultOTLPReceiverPorts = []string{"4317", "4318"}
 
 // Annotations return the annotations for OpenTelemetryCollector resources.
 func Annotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations []string) (map[string]string, error) {
@@ -84,6 +97,16 @@ func PodAnnotations(instance v1beta1.OpenTelemetryCollector, filterAnnotations [
 		}
 	}
 
+	// Bypass Istio/OSSM inbound interception for OTLP receiver ports so unary
+	// OTLP/gRPC Export is not broken by the collector inbound Envoy hop
+	// (TRACING-6963). Union with any user-provided excludeInboundPorts.
+	if !IsFilteredSet(IstioExcludeInboundPortsKey, filterAnnotations) {
+		podAnnotations[IstioExcludeInboundPortsKey] = mergeCommaSeparatedPorts(
+			podAnnotations[IstioExcludeInboundPortsKey],
+			defaultOTLPReceiverPorts...,
+		)
+	}
+
 	// make sure sha256 for configMap is always calculated
 	hash, err := GetConfigMapSHA(instance.Spec.Config)
 	if err != nil {
@@ -103,4 +126,45 @@ func GetConfigMapSHA(config v1beta1.Config) (string, error) {
 	}
 	h := sha256.Sum256(b)
 	return fmt.Sprintf("%x", h), nil
+}
+
+// mergeCommaSeparatedPorts unions existing annotation ports with extra ports.
+// Empty tokens are ignored; result is sorted for stable manifest output.
+func mergeCommaSeparatedPorts(existing string, extra ...string) string {
+	set := map[int]struct{}{}
+
+	add := func(raw string) {
+		for _, part := range strings.Split(raw, ",") {
+			part = strings.TrimSpace(part)
+			if part == "" {
+				continue
+			}
+			port, err := strconv.Atoi(part)
+			if err != nil || port <= 0 || port > 65535 {
+				continue
+			}
+			set[port] = struct{}{}
+		}
+	}
+
+	add(existing)
+	for _, p := range extra {
+		add(p)
+	}
+
+	if len(set) == 0 {
+		return existing
+	}
+
+	ports := make([]int, 0, len(set))
+	for p := range set {
+		ports = append(ports, p)
+	}
+	sort.Ints(ports)
+
+	out := make([]string, len(ports))
+	for i, p := range ports {
+		out[i] = strconv.Itoa(p)
+	}
+	return strings.Join(out, ",")
 }
